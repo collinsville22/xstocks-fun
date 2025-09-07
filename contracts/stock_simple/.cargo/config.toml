@@ -1,0 +1,33 @@
+[build]
+# Parallel jobs configuration and stack size
+jobs = 4
+rustflags = ["-C", "link-arg=-Wl,-z,stack-size=8388608"]
+
+[env]
+# Set minimum stack size at runtime
+RUST_MIN_STACK = "8388608"
+
+# Configure build for better memory usage on Windows
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+    "-C", "target-cpu=native",
+    "-C", "opt-level=2", 
+    "-C", "codegen-units=16"
+]
+
+# Configure specific packages that cause stack overflow
+[profile.dev.package.regex-automata]
+opt-level = 0
+codegen-units = 32
+
+[profile.release.package.regex-automata]  
+opt-level = 1
+codegen-units = 16
+
+[profile.dev.package.regex-syntax]
+opt-level = 0
+codegen-units = 16
+
+[profile.release.package.regex-syntax]
+opt-level = 1
+codegen-units = 8

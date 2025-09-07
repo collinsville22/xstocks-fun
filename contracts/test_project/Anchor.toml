@@ -1,0 +1,19 @@
+[toolchain]
+package_manager = "npm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+test_project = "8R8Z9KVvtBaNJ2P9x2tPQRVSC9WrXQgei7xA7AHz1C7L"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = '~\.config\solana\id.json'
+
+[scripts]
+test = "npx mocha -t 1000000 tests/"

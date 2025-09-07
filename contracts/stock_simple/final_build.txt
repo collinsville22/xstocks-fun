@@ -1,0 +1,7 @@
+[2025-09-01T04:29:16.508071700Z WARN  cargo_build_sbf] Package 'stock_simple' has two crate types defined: cdylib and lib. This setting precludes link-time optimizations (LTO). Use cdylib for programs to be deployed and rlib for packages to be imported by other programs as libraries.
+[2025-09-01T04:29:16.508902000Z INFO  cargo_build_sbf::utils] spawn: "rustup" toolchain list -v
+[2025-09-01T04:29:16.601155300Z INFO  cargo_build_sbf::utils] spawn: "rustup" toolchain uninstall 1.84.1-sbpf-solana-v1.51
+info: uninstalling toolchain '1.84.1-sbpf-solana-v1.51'
+info: toolchain '1.84.1-sbpf-solana-v1.51' uninstalled
+[2025-09-01T04:29:16.634944600Z INFO  cargo_build_sbf::utils] spawn: "rustup" toolchain link 1.84.1-sbpf-solana-v1.51 \\?\C:\Users\ndubu\.local\share\solana\install\releases\3.0.0\solana-release\bin\platform-tools-sdk\sbf\dependencies\platform-tools\rust
+error: not a directory: '\\?\C:\Users\ndubu\.local\share\solana\install\releases\3.0.0\solana-release\bin\platform-tools-sdk\sbf\dependencies\platform-tools\rust\lib'
