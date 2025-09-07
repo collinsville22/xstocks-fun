@@ -1,7 +1,18 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "apps/web/.next",
-  "installCommand": "npm install",
-  "ignoreCommand": "git log -1 --format=%s | grep -q '\\[skip ci\\]'",
-  "framework": "nextjs"
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "distDir": ".next"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/web/$1"
+    }
+  ]
 }
