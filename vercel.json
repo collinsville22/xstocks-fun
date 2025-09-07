@@ -1,9 +1,10 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "name": "xstocksfun",
-  "buildCommand": "cd apps/web && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": "apps/web/.next",
   "installCommand": "npm install",
+  "rootDirectory": "./",
   "ignoreCommand": "git log -1 --format=%s | grep -q '\\[skip ci\\]'",
   "env": {
     "NEXT_PUBLIC_APP_NAME": "xStocks.fun",
