@@ -7,8 +7,7 @@
   "dependencies": {
     "@xstocks/types": "*",
     "@xstocks/config": "*",
-    "@xstocks/stores": "*",
-    "react": "^18.3.1"
+    "@xstocks/stores": "*"
   },
   "devDependencies": {
     "@types/react": "^18.3.11",
