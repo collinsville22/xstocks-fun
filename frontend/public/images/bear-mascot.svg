@@ -1,0 +1,43 @@
+<svg width="300" height="400" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bear Body -->
+  <ellipse cx="150" cy="250" rx="80" ry="100" fill="#F4A460"/>
+
+  <!-- Bear Head -->
+  <circle cx="150" cy="150" r="70" fill="#F4A460"/>
+
+  <!-- Left Ear -->
+  <circle cx="110" cy="100" r="35" fill="#F4A460"/>
+
+  <!-- Right Ear -->
+  <circle cx="190" cy="100" r="35" fill="#F4A460"/>
+
+  <!-- Face -->
+  <ellipse cx="150" cy="170" rx="45" ry="35" fill="#FFF8DC"/>
+
+  <!-- Left Eye -->
+  <circle cx="130" cy="145" r="8" fill="#2C2C2C"/>
+  <circle cx="133" cy="143" r="3" fill="white"/>
+
+  <!-- Right Eye -->
+  <circle cx="170" cy="145" r="8" fill="#2C2C2C"/>
+  <circle cx="173" cy="143" r="3" fill="white"/>
+
+  <!-- Nose -->
+  <ellipse cx="150" cy="165" rx="12" ry="10" fill="#8B4513"/>
+
+  <!-- Mouth -->
+  <path d="M 140 175 Q 150 180 160 175" stroke="#2C2C2C" stroke-width="2" fill="none"/>
+
+  <!-- Arms -->
+  <ellipse cx="90" cy="260" rx="25" ry="50" fill="#F4A460" transform="rotate(-20 90 260)"/>
+  <ellipse cx="210" cy="260" rx="25" ry="50" fill="#F4A460" transform="rotate(20 210 260)"/>
+
+  <!-- Coin (xStocks logo) -->
+  <circle cx="150" cy="280" r="35" fill="#FFD700" stroke="#F4A460" stroke-width="4"/>
+  <text x="150" y="290" font-family="Fredoka, Arial" font-size="24" font-weight="bold" text-anchor="middle" fill="#2C2C2C">$</text>
+
+  <!-- Hearts -->
+  <path d="M 40 120 Q 40 110 50 110 Q 60 110 60 120 Q 60 130 50 140 Q 40 130 40 120" fill="#FF6B6B"/>
+  <path d="M 240 150 Q 240 140 250 140 Q 260 140 260 150 Q 260 160 250 170 Q 240 160 240 150" fill="#FF6B6B"/>
+  <path d="M 30 200 Q 30 190 40 190 Q 50 190 50 200 Q 50 210 40 220 Q 30 210 30 200" fill="#FF6B6B"/>
+</svg>
