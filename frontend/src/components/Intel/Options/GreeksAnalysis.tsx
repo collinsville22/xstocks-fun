@@ -134,7 +134,7 @@ export const GreeksAnalysis: React.FC<GreeksAnalysisProps> = ({
       }
 
       const apiResponse = await response.json();
-      setGreeksData(data);
+      setGreeksData(apiResponse);
     } catch (err) {
       console.error('Error fetching Greeks:', err);
       setError(err instanceof Error ? err.message : 'Failed to load Greeks');
@@ -248,7 +248,7 @@ export const GreeksAnalysis: React.FC<GreeksAnalysisProps> = ({
               <span className="text-[#1a1a1a] font-semibold">${data.strike.toFixed(2)}</span>
             </div>
             {data.isATM && (
-              <Badge variant="secondary" className="bg-playful-cream text-yellow-400 text-sm">
+              <Badge variant="outline" className="bg-playful-cream text-yellow-400 text-sm">
                 ATM
               </Badge>
             )}
@@ -460,7 +460,7 @@ export const GreeksAnalysis: React.FC<GreeksAnalysisProps> = ({
             </CardTitle>
             <div className="flex items-center gap-2.5">
               <Button
-                variant={selectedGreek === 'delta' ? 'secondary' : 'outline'}
+                variant={selectedGreek === 'delta' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedGreek('delta')}
                 className="text-sm"
@@ -469,7 +469,7 @@ export const GreeksAnalysis: React.FC<GreeksAnalysisProps> = ({
                 Delta
               </Button>
               <Button
-                variant={selectedGreek === 'gamma' ? 'secondary' : 'outline'}
+                variant={selectedGreek === 'gamma' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedGreek('gamma')}
                 className="text-sm"
@@ -478,7 +478,7 @@ export const GreeksAnalysis: React.FC<GreeksAnalysisProps> = ({
                 Gamma
               </Button>
               <Button
-                variant={selectedGreek === 'theta' ? 'secondary' : 'outline'}
+                variant={selectedGreek === 'theta' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedGreek('theta')}
                 className="text-sm"
@@ -487,7 +487,7 @@ export const GreeksAnalysis: React.FC<GreeksAnalysisProps> = ({
                 Theta
               </Button>
               <Button
-                variant={selectedGreek === 'vega' ? 'secondary' : 'outline'}
+                variant={selectedGreek === 'vega' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedGreek('vega')}
                 className="text-sm"
@@ -692,18 +692,18 @@ export const GreeksAnalysis: React.FC<GreeksAnalysisProps> = ({
                         )}>
                           <div className="flex items-center justify-center gap-2.5">
                             {call?.inTheMoney && (
-                              <Badge variant="secondary" className="bg-playful-cream text-green-400 text-sm px-1 py-0">
+                              <Badge variant="outline" className="bg-playful-cream text-green-400 text-sm px-1 py-0">
                                 ITM
                               </Badge>
                             )}
                             ${strike.toFixed(2)}
                             {isATM && (
-                              <Badge variant="secondary" className="bg-playful-cream text-yellow-400 text-sm px-1 py-0">
+                              <Badge variant="outline" className="bg-playful-cream text-yellow-400 text-sm px-1 py-0">
                                 ATM
                               </Badge>
                             )}
                             {put?.inTheMoney && (
-                              <Badge variant="secondary" className="bg-playful-cream text-red-400 text-sm px-1 py-0">
+                              <Badge variant="outline" className="bg-playful-cream text-red-400 text-sm px-1 py-0">
                                 ITM
                               </Badge>
                             )}

@@ -363,21 +363,38 @@ export class QuantitativeAPI {
       strategyParams
     };
 
- console.log('[SEARCH] Backtest request:', JSON.stringify(requestBody, null, 2));
+    const requestHash = `${symbols.sort().join(',')}-${startDate}-${endDate}-${strategy}`;
+    console.log('🔍 [BACKTEST] Request:', JSON.stringify(requestBody, null, 2));
+    console.log('📊 [BACKTEST] Request hash:', requestHash);
 
-    const response = await fetch(`${BACKEND_URL}/api/quant/backtest`, {
+    // Add timestamp to URL to prevent ANY caching
+    const timestamp = Date.now();
+    const response = await fetch(`${BACKEND_URL}/api/quant/backtest?_t=${timestamp}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
       body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
       const error = await response.text();
- console.error('[ERROR] Backtest error response:', error);
+      console.error('❌ [BACKTEST] Error response:', error);
       throw new Error(`Backtest failed: ${error}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log('✅ [BACKTEST] Response received:', {
+      dataPoints: result.chart?.length || 0,
+      symbols: result.symbols,
+      debug: result._debug,
+      timestamp: new Date(result.timestamp).toISOString()
+    });
+
+    return result;
   }
 
   /**
@@ -425,9 +442,15 @@ export class QuantitativeAPI {
 
  console.log(' Black-Litterman request:', JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch(`${BACKEND_URL}/api/quant/black-litterman`, {
+    // Add cache-busting timestamp
+    const timestamp = Date.now();
+    const response = await fetch(`${BACKEND_URL}/api/quant/black-litterman?_t=${timestamp}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
       body: JSON.stringify(requestBody)
     });
 

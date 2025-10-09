@@ -7,6 +7,10 @@
 export const SERVER = {
   PORT: process.env.PORT || 3008,
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+  // Support multiple origins for production + local dev
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : [process.env.FRONTEND_URL || 'http://localhost:3000'],
   SHUTDOWN_TIMEOUT_MS: 5000
 };
 

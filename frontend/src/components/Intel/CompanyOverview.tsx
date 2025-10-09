@@ -53,7 +53,7 @@ export const CompanyOverview: React.FC<CompanyOverviewProps> = ({ symbol }) => {
       }
 
       const apiResult = await response.json();
-      setData(result);
+      setData(apiResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load company data');
       console.error('Error fetching company data:', err);

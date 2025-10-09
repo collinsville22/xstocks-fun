@@ -179,23 +179,6 @@ Intel Microservice (Python)
 - `GET /api/portfolio/analytics` - Portfolio analysis
 - `GET /api/quantitative/backtest` - Backtest strategy
 
-## Security Considerations
-
-- Private keys never leave user's wallet
-- All transactions signed client-side
-- Backend validates but doesn't hold custody
-- Rate limiting on all API endpoints
-- Input validation throughout the stack
-- CORS properly configured for production
-
-## Performance
-
-- Frontend builds in <10 seconds
-- API response times <100ms (excluding blockchain)
-- Intel data cached with smart invalidation
-- WebSocket connections for real-time updates
-- Optimized bundle size with code splitting
-
 ## Development Workflow
 
 ### Running Tests
@@ -208,12 +191,6 @@ pnpm run build  # Runs tsc --noEmit && vite build
 cd backend
 npm run dev
 ```
-
-### Code Quality
-- TypeScript for type safety
-- ESLint configuration
-- Consistent code formatting
-- Modular component structure
 
 ## Deployment Considerations
 
@@ -238,25 +215,6 @@ npm run dev
 - Some xStocks may have low liquidity
 - Cross-chain bridge transfers take 2-5 minutes
 - Requires SOL for transaction fees
-
-## Future Enhancements
-
-We're continuously improving the platform. Potential additions include:
-- Mobile wallet integration
-- Advanced charting tools
-- Social features
-- Portfolio sharing
-- Trading competitions
-
-## Troubleshooting
-
-**Wallet won't connect**: Ensure you're using a Solana wallet and have the latest browser extension version.
-
-**Swap fails**: Check that you have sufficient SOL for transaction fees (usually 0.001-0.01 SOL).
-
-**Intel data not loading**: The yfinance service may need a restart. Check that port 8002 is not blocked.
-
-**Build errors**: Run `pnpm install` again to ensure all dependencies are properly installed.
 
 ## License
 

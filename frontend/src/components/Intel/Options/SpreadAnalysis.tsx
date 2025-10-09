@@ -45,7 +45,9 @@ type SpreadType =
   | 'iron_condor'
   | 'iron_butterfly'
   | 'calendar'
-  | 'diagonal';
+  | 'diagonal'
+  | 'straddle'
+  | 'strangle';
 
 interface OptionLeg {
   type: 'CALL' | 'PUT';
@@ -212,20 +214,20 @@ export const SpreadAnalysis: React.FC<SpreadAnalysisProps> = ({
           }
 
           const apiResponse = await response.json();
- console.log(' Received expirations:', data.availableExpirations?.length || 0);
+ console.log(' Received expirations:', apiResponse.availableExpirations?.length || 0);
 
           // Set available expirations - prefer dates at least 7 days out
-          if (data.availableExpirations && data.availableExpirations.length > 0) {
-            setAvailableExpirations(data.availableExpirations);
+          if (apiResponse.availableExpirations && apiResponse.availableExpirations.length > 0) {
+            setAvailableExpirations(apiResponse.availableExpirations);
 
             // Find first expiration at least 7 days out for better Greeks
             const today = new Date();
             const minDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-            const preferredExpiration = data.availableExpirations.find((exp: string) => {
+            const preferredExpiration = apiResponse.availableExpirations.find((exp: string) => {
               const expDate = new Date(exp);
               return expDate >= minDate;
-            }) || data.availableExpirations[1] || data.availableExpirations[0];
+            }) || apiResponse.availableExpirations[1] || apiResponse.availableExpirations[0];
 
  console.log(' Selected expiration:', preferredExpiration, '(at least 7 days out)');
             setSelectedExpiration(preferredExpiration);
@@ -261,16 +263,16 @@ export const SpreadAnalysis: React.FC<SpreadAnalysisProps> = ({
 
         const apiResponse = await response.json();
  console.log(' SpreadAnalysis - Received options data for expiration:', selectedExpiration, {
-          calls: data.calls?.length || 0,
-          puts: data.puts?.length || 0
+          calls: apiResponse.calls?.length || 0,
+          puts: apiResponse.puts?.length || 0
         });
 
         // Transform calls data
-        const calls: OptionLeg[] = (data.calls || []).map((call: any) => ({
+        const calls: OptionLeg[] = (apiResponse.calls || []).map((call: any) => ({
           type: 'CALL' as const,
           action: 'BUY' as const,
           strike: call.strike,
-          expiration: data.expiration || '',
+          expiration: apiResponse.expiration || '',
           price: call.lastPrice || 0,
           quantity: 1,
           impliedVolatility: call.impliedVolatility || 0,
@@ -281,11 +283,11 @@ export const SpreadAnalysis: React.FC<SpreadAnalysisProps> = ({
         }));
 
         // Transform puts data
-        const puts: OptionLeg[] = (data.puts || []).map((put: any) => ({
+        const puts: OptionLeg[] = (apiResponse.puts || []).map((put: any) => ({
           type: 'PUT' as const,
           action: 'BUY' as const,
           strike: put.strike,
-          expiration: data.expiration || '',
+          expiration: apiResponse.expiration || '',
           price: put.lastPrice || 0,
           quantity: 1,
           impliedVolatility: put.impliedVolatility || 0,
@@ -695,7 +697,7 @@ export const SpreadAnalysis: React.FC<SpreadAnalysisProps> = ({
                       <div className="flex items-center gap-2.5">
                         <strat.icon className={cn('w-4 h-4', strat.color)} />
                         <span>{strat.name}</span>
-                        <Badge variant="secondary" className="text-sm ml-2">
+                        <Badge variant="outline" className="text-sm ml-2">
                           {strat.complexity}
                         </Badge>
                       </div>
@@ -717,7 +719,7 @@ export const SpreadAnalysis: React.FC<SpreadAnalysisProps> = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-2.5 mb-2">
                       <h4 className="font-semibold text-[#1a1a1a]">{strategy.name}</h4>
-                      <Badge variant="secondary" className="text-sm">
+                      <Badge variant="outline" className="text-sm">
                         {strategy.riskLevel} Risk
                       </Badge>
                     </div>
@@ -1014,14 +1016,14 @@ export const SpreadAnalysis: React.FC<SpreadAnalysisProps> = ({
                       return (
                         <tr key={index} className="border-b border-2 border-black hover:bg-white border-2 border-black rounded-2xl shadow-md">
                           <td className="px-3 py-2.5 text-sm">
-                            <Badge variant="secondary" className={cn(
+                            <Badge variant="outline" className={cn(
                               isDebit ? 'bg-playful-cream text-red-400' : 'bg-playful-cream text-green-400'
                             )}>
                               {leg.action}
                             </Badge>
                           </td>
                           <td className="px-3 py-2.5 text-sm">
-                            <Badge variant="secondary" className={cn(
+                            <Badge variant="outline" className={cn(
                               leg.type === 'CALL' ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-red-400'
                             )}>
                               {leg.type}

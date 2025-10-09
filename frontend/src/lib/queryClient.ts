@@ -12,7 +12,7 @@ export const queryClient = new QueryClient({
       // Don't refetch on window focus for better performance
       refetchOnWindowFocus: false,
       // Refetch on mount only if data is stale
-      refetchOnMount: 'stale' as const,
+      refetchOnMount: 'always' as const,
     },
   },
 });

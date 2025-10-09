@@ -237,7 +237,7 @@ export const useRobustWebSocket = (options: UseRobustWebSocketOptions): UseRobus
 
       wsRef.current.onerror = (error) => {
  console.error('[ERROR] WebSocket error:', error);
-        onError?.(error as Error);
+        onError?.(new Error(error instanceof Event ? 'WebSocket error' : String(error)));
       };
 
     } catch (error) {

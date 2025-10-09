@@ -226,7 +226,7 @@ const SectorAnalysisDashboard: React.FC<SectorAnalysisDashboardProps> = ({ class
                           <TrendingDown className="w-3 h-3 text-red-400" />
                         )}
                       </div>
-                      <Badge variant="secondary" className="text-sm">
+                      <Badge variant="outline" className="text-sm">
                         {sector.stockCount} stocks
                       </Badge>
                     </Button>

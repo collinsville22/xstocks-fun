@@ -106,7 +106,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({
         }
 
         const apiResponse = await response.json();
-        setChainData(data);
+        setChainData(apiResponse);
       } catch (err) {
         console.error('Error fetching options chain:', err);
         setError(err instanceof Error ? err.message : 'Failed to load options chain');
@@ -175,7 +175,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({
         )}>
           <div className="flex items-center justify-center gap-2.5">
             {option.inTheMoney && (
-              <Badge variant="secondary" className={cn(
+              <Badge variant="outline" className={cn(
                 'text-sm px-1 py-0',
                 type === 'call' ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-red-400'
               )}>
@@ -184,7 +184,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({
             )}
             ${option.strike.toFixed(2)}
             {isATM && (
-              <Badge variant="secondary" className="bg-playful-cream text-yellow-400 text-sm px-1 py-0">
+              <Badge variant="outline" className="bg-playful-cream text-yellow-400 text-sm px-1 py-0">
                 ATM
               </Badge>
             )}
@@ -295,7 +295,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({
 
               <div className="flex items-center gap-2.5">
                 <Button
-                  variant={showGreeks ? 'secondary' : 'outline'}
+                  variant={showGreeks  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setShowGreeks(!showGreeks)}
                   className="text-sm"

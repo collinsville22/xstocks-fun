@@ -43,15 +43,15 @@ import {
   Gauge
 } from 'lucide-react';
 
-// All 63 xStocks available for backtesting benchmarks
+// All 63 xStocks available - Official list from tokens.json
 const XSTOCKS_SYMBOLS = [
-  'AAPLx', 'ABTx', 'ADIx', 'AMGNx', 'AMTx', 'AMZNx', 'AONx', 'AVGOx', 'AXPx',
-  'BAx', 'BKx', 'BRKBx', 'BSx', 'C1x', 'CATx', 'CBx', 'COSTx', 'CRMx', 'CSCOx', 'CVXx',
-  'DHRx', 'DISx', 'GDx', 'GEx', 'GOOGLx', 'GSx', 'HDx', 'HONx', 'IBMx', 'INTCx',
-  'JNJx', 'JPMx', 'KOx', 'LLYx', 'LMTx', 'MCDx', 'METAx', 'MMCx', 'MMx', 'MRKx', 'MSFTx', 'MSx',
-  'NEEx', 'NKEx', 'NOWx', 'NVDAx', 'ORCLx', 'PEPx', 'PGx', 'PMx', 'QCOMx',
-  'SHWx', 'SPGx', 'TJXx', 'TMOx', 'TRVx', 'TSLAx', 'TXNx', 'UNHx', 'UPSx',
-  'Vx', 'VZx', 'WMTx'
+  'AAPLx', 'ABBVx', 'ABTx', 'ACNx', 'AMBRx', 'AMZNx', 'APPx', 'AVGOx', 'AZNx',
+  'BACx', 'BRK.Bx', 'CMCSAx', 'COINx', 'CRCLx', 'CRMx', 'CRWDx', 'CSCOx', 'CVXx',
+  'DFDVx', 'DHRx', 'GLDx', 'GMEx', 'GOOGLx', 'GSx', 'HDx', 'HONx', 'HOODx',
+  'IBMx', 'INTCx', 'JNJx', 'JPMx', 'KOx', 'LINx', 'LLYx', 'MAx', 'MCDx', 'MDTx',
+  'METAx', 'MRKx', 'MRVLx', 'MSFTx', 'MSTRx', 'NFLXx', 'NVDAx', 'NVOx', 'OPENx',
+  'ORCLx', 'PEPx', 'PFEx', 'PGx', 'PLTRx', 'PMx', 'QQQx', 'SPYx', 'TBLLx',
+  'TMOx', 'TQQQx', 'TSLAx', 'UNHx', 'VTIx', 'Vx', 'WMTx', 'XOMx'
 ];
 
 // Tool types for the analytics platform
@@ -361,8 +361,8 @@ const fetchHistoricalPrices = async (
       const realSymbol = realSymbols[i];
       const symbolData = apiResult.data[realSymbol];
 
-      if (Array.isArray(data) && data.length > 0) {
-        historicalData[xStockSymbol] = (data as any[]).map(item => ({
+      if (Array.isArray(symbolData) && apiResult.data.length > 0) {
+        historicalData[xStockSymbol] = (symbolData as any[]).map(item => ({
           symbol: xStockSymbol,
           date: item.date,
           open: item.open,
@@ -485,6 +485,9 @@ const QuantitativeAnalyticsTools: React.FC = () => {
   const [availableSymbols, setAvailableSymbols] = useState<string[]>([]);
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>(['AAPLx', 'MSFTx', 'GOOGLx', 'AMZNx', 'NVDAx']);
 
+  // Portfolio optimization section state (MPT or BL)
+  const [activeOptimizationSection, setActiveOptimizationSection] = useState<'mpt' | 'bl'>('mpt');
+
   // Analytics results state
   const [backtestResult, setBacktestResult] = useState<BacktestResult | null>(null);
   const [portfolioOptimization, setPortfolioOptimization] = useState<PortfolioOptimization | null>(null);
@@ -493,6 +496,7 @@ const QuantitativeAnalyticsTools: React.FC = () => {
   const [monteCarloResults, setMonteCarloResults] = useState<MonteCarloResults | null>(null);
   const [blackLittermanResults, setBlackLittermanResults] = useState<BlackLittermanResults | null>(null);
   const [factorAnalysisResults, setFactorAnalysisResults] = useState<FactorAnalysisResults | null>(null);
+  const [lastOptimizationMethod, setLastOptimizationMethod] = useState<'mpt' | 'black-litterman' | null>(null);
 
   // Parameters state
   const [backtestParams, setBacktestParams] = useState({
@@ -515,12 +519,26 @@ const QuantitativeAnalyticsTools: React.FC = () => {
     confidenceLevel: 0.95
   });
 
-  // Black-Litterman investor views state
+  // Black-Litterman investor views state - Auto-populate with first 3 selected stocks
   const [investorViews, setInvestorViews] = useState([
-    { symbol: 'AAPL', expectedReturn: 12, confidence: 80, description: 'Apple will outperform due to strong iPhone sales' },
-    { symbol: 'GOOGL', expectedReturn: 15, confidence: 70, description: 'Google AI leadership will drive growth' },
-    { symbol: 'NVDA', expectedReturn: 20, confidence: 60, description: 'NVIDIA will benefit from AI chip demand' }
+    { symbol: 'AAPLx', expectedReturn: 10, confidence: 80, description: 'View 1' },
+    { symbol: 'MSFTx', expectedReturn: 10, confidence: 80, description: 'View 2' },
+    { symbol: 'GOOGLx', expectedReturn: 10, confidence: 80, description: 'View 3' }
   ]);
+
+  // Auto-sync investor views with selected symbols - prefill ALL selected stocks
+  useEffect(() => {
+    if (selectedSymbols.length > 0) {
+      // Create views for ALL selected stocks with default ER=10 and Confidence=80
+      const newViews = selectedSymbols.map((symbol, index) => ({
+        symbol,
+        expectedReturn: 10,
+        confidence: 80,
+        description: `View ${index + 1}`
+      }));
+      setInvestorViews(newViews);
+    }
+  }, [selectedSymbols.join(',')]); // Use join to create a stable dependency
 
   // Independent date ranges for MPT and Black-Litterman
   const [mptDateRange, setMptDateRange] = useState({
@@ -533,29 +551,27 @@ const QuantitativeAnalyticsTools: React.FC = () => {
     endDate: '2024-01-01'
   });
 
-  // Load available symbols
+  // Load available symbols - Use hardcoded XSTOCKS_SYMBOLS for reliability
   useEffect(() => {
-    const loadSymbols = async () => {
+    // Use the official 63 xStocks list directly instead of fetching
+    setAvailableSymbols(XSTOCKS_SYMBOLS);
+    console.log(`✅ Loaded ${XSTOCKS_SYMBOLS.length} official xStock symbols for quantitative analysis`);
+
+    // Optional: Validate against backend (but don't rely on it for UI)
+    const validateSymbols = async () => {
       try {
         const response = await fetch(API.intel.allXStocks);
-        if (!response.ok) throw new Error('Failed to fetch symbols');
+        if (!response.ok) return;
 
         const apiResponse = await response.json();
-        const symbols = Object.keys(data).map(key => key.replace('x', ''));
-        setAvailableSymbols(symbols);
- console.log(`Loaded ${symbols.length} symbols for quantitative analysis`);
+        const backendSymbols = Object.keys(apiResponse);
+        console.log(`📊 Backend has ${backendSymbols.length} symbols available`);
       } catch (error) {
- console.error('Error loading symbols:', error);
-        // TODO: Implement exponential backoff retry logic
-        // Currently fails silently - not great UX
-        // TODO: Implement exponential backoff retry logic
-        // Currently fails silently - not great UX
-        // TODO: Implement exponential backoff retry logic
-        // Currently fails silently - not great UX
+        console.warn('Could not validate symbols with backend (non-critical):', error);
       }
     };
 
-    loadSymbols();
+    validateSymbols(); // Non-blocking validation
   }, []);
 
   // ========================================
@@ -646,17 +662,39 @@ const QuantitativeAnalyticsTools: React.FC = () => {
           positionSize: backtestParams.positionSize
         },
         backtestParams.benchmark // Keep xStock format
-      );
+      ) as any;
+
+      console.log('📦 RAW Backtest API Response:', backtestResults);
+      console.log('🔍 DEBUG INFO:', {
+        symbols: backtestResults.symbols,
+        dataPoints: backtestResults.chart?.length || 0,
+        timestamp: new Date(backtestResults.timestamp).toISOString(),
+        debug: backtestResults._debug
+      });
+
+      // Validate response structure
+      if (!backtestResults || !backtestResults.chart) {
+        throw new Error(`Invalid backtest response structure: ${JSON.stringify(backtestResults).substring(0, 200)}`);
+      }
+
+      // CACHE DETECTION: Check if we're getting the same data
+      if (backtestResults._debug) {
+        console.log('🔎 CACHE CHECK:');
+        console.log('   - Request hash:', backtestResults._debug.requestHash);
+        console.log('   - Generated at:', backtestResults._debug.generatedAt);
+        console.log('   - Data points:', backtestResults._debug.dataPoints);
+        console.log('   - Symbols processed:', backtestResults._debug.symbolsProcessed);
+      }
 
       // Backend returns 'chart' array with portfolioValue, not 'portfolioHistory'
-      const equityCurve = data.chart.map((item: any) => ({
+      const equityCurve = backtestResults.chart.map((item: any) => ({
         date: item.date,
         value: item.portfolioValue,
         benchmark: item.portfolioValue // TODO: add real benchmark data
       }));
 
       // Calculate drawdown from equity curve
-      const initialCapital = data.performance.initialCapital;
+      const initialCapital = backtestResults.performance.initialCapital;
       let maxValue = initialCapital;
       const drawdownData = equityCurve.map((item: any) => {
         maxValue = Math.max(maxValue, item.value);
@@ -668,18 +706,34 @@ const QuantitativeAnalyticsTools: React.FC = () => {
       });
 
       const backtestResult = {
-        totalReturn: data.performance.totalReturn,
-        annualizedReturn: data.performance.annualReturn,
-        volatility: data.performance.annualVolatility,
-        sharpeRatio: data.performance.sharpeRatio,
-        sortinoRatio: data.performance.sortinoRatio,
-        maxDrawdown: data.performance.maxDrawdown,
-        winRate: data.performance.winRate,
-        portfolioHistory: data.chart,
+        totalReturn: backtestResults.performance.totalReturn,
+        annualizedReturn: backtestResults.performance.annualReturn,
+        volatility: backtestResults.performance.annualVolatility,
+        sharpeRatio: backtestResults.performance.sharpeRatio,
+        sortinoRatio: backtestResults.performance.sortinoRatio,
+        maxDrawdown: backtestResults.performance.maxDrawdown,
+        winRate: backtestResults.performance.winRate,
+        portfolioHistory: backtestResults.chart,
         equityCurve,
         drawdownData,
-        trades: [], // Backend doesn't return trades yet
-        strategyParams: backtestParams
+        trades: [],
+        strategyParams: backtestParams,
+        // Add missing properties
+        calmarRatio: backtestResults.performance.calmarRatio || 0,
+        profitFactor: backtestResults.performance.profitFactor || 0,
+        averageGain: backtestResults.performance.averageGain || 0,
+        averageLoss: backtestResults.performance.averageLoss || 0,
+        totalTrades: backtestResults.performance.totalTrades || 0,
+        winningTrades: backtestResults.performance.winningTrades || 0,
+        losingTrades: backtestResults.performance.losingTrades || 0,
+        bestTrade: backtestResults.performance.bestTrade || 0,
+        worstTrade: backtestResults.performance.worstTrade || 0,
+        avgTradeDuration: backtestResults.performance.averageTradeDuration || 0,
+        averageTradeDuration: backtestResults.performance.averageTradeDuration || 0,
+        returnDistribution: backtestResults.performance.returnDistribution || [],
+        alpha: backtestResults.performance.alpha || 0,
+        beta: backtestResults.performance.beta || 1,
+        informationRatio: backtestResults.performance.informationRatio || 0
       };
 
  console.log(' Backtest result being set:', backtestResult);
@@ -736,8 +790,20 @@ const QuantitativeAnalyticsTools: React.FC = () => {
 
       setCorrelationAnalysis({
         correlationMatrix,
-        clusters: correlationApiResponse.clusters || [],
-        principalComponents: correlationApiResponse.principalComponents || [],
+        clusters: (correlationApiResponse.clusters || []).map((cluster: any, idx: number) => ({
+          name: `Cluster ${idx + 1}`,
+          stocks: cluster.stocks,
+          avgCorrelation: cluster.averageCorrelation
+        })),
+        principalComponents: (correlationApiResponse.principalComponents || []).map((pc: any) => ({
+          component: pc.id,
+          variance: pc.varianceExplained,
+          cumulativeVariance: pc.cumulativeVariance,
+          loadings: pc.topContributors.reduce((acc: any, contrib: any) => {
+            acc[contrib.symbol] = contrib.loading;
+            return acc;
+          }, {})
+        })),
         hierarchicalClustering: {
           dendrogram: {},
           distances: []
@@ -780,59 +846,50 @@ const QuantitativeAnalyticsTools: React.FC = () => {
       // @justin 2024-09-05
 
 
-      const optimizedWeights = await QuantitativeAPI.optimizePortfolio(
+      const result = await QuantitativeAPI.optimizePortfolio(
         selectedSymbols,
         mptDateRange.startDate,
         mptDateRange.endDate,
         0.0,
         0.5,
         1000
-      );
+      ) as any;
+
+      // Validate API response
+      const minVolPortfolio = result.minVolatilityPortfolio || result.minRiskPortfolio;
+      if (!result || !result.efficientFrontier || !result.maxSharpePortfolio || !minVolPortfolio) {
+        throw new Error(`Invalid portfolio optimization response: ${JSON.stringify(result).substring(0, 200)}`);
+      }
 
       setPortfolioOptimization({
-        efficientFrontier: data.efficientFrontier.map(p => ({
-          return: p.return,
+        efficientFrontier: result.efficientFrontier.map((p: any) => ({
+          return: p.return || p.expectedReturn,
           risk: p.volatility,
           volatility: p.volatility,
           sharpe: p.sharpe,
-          weights: Object.fromEntries(
-            Object.entries(p.weights).map(([k, v]) => [k + 'x', v])
-          )
+          weights: p.weights
         })),
         optimalPortfolio: {
-          weights: Object.fromEntries(
-            Object.entries(data.maxSharpePortfolio.weights).map(([k, v]) => [k + 'x', v])
-          ),
-          expectedReturn: data.maxSharpePortfolio.expectedReturn,
-          volatility: data.maxSharpePortfolio.volatility,
-          sharpeRatio: data.maxSharpePortfolio.sharpe
+          weights: result.maxSharpePortfolio.weights,
+          expectedReturn: result.maxSharpePortfolio.expectedReturn,
+          volatility: result.maxSharpePortfolio.volatility,
+          sharpeRatio: result.maxSharpePortfolio.sharpe
         },
         minVariancePortfolio: {
-          weights: Object.fromEntries(
-            Object.entries(data.minVolatilityPortfolio.weights).map(([k, v]) => [k + 'x', v])
-          ),
-          expectedReturn: data.minVolatilityPortfolio.expectedReturn,
-          volatility: data.minVolatilityPortfolio.volatility,
-          sharpe: data.minVolatilityPortfolio.sharpe
+          weights: minVolPortfolio.weights,
+          expectedReturn: minVolPortfolio.expectedReturn,
+          volatility: minVolPortfolio.volatility,
+          sharpe: minVolPortfolio.sharpe
         },
         maxSharpePortfolio: {
-          weights: Object.fromEntries(
-            Object.entries(data.maxSharpePortfolio.weights).map(([k, v]) => [k + 'x', v])
-          ),
-          expectedReturn: data.maxSharpePortfolio.expectedReturn,
-          volatility: data.maxSharpePortfolio.volatility,
-          sharpeRatio: data.maxSharpePortfolio.sharpe
-        },
-        minVolatilityPortfolio: {
-          weights: Object.fromEntries(
-            Object.entries(data.minVolatilityPortfolio.weights).map(([k, v]) => [k + 'x', v])
-          ),
-          expectedReturn: data.minVolatilityPortfolio.expectedReturn,
-          volatility: data.minVolatilityPortfolio.volatility,
-          sharpe: data.minVolatilityPortfolio.sharpe
+          weights: result.maxSharpePortfolio.weights,
+          expectedReturn: result.maxSharpePortfolio.expectedReturn,
+          volatility: result.maxSharpePortfolio.volatility,
+          sharpeRatio: result.maxSharpePortfolio.sharpe
         }
       });
 
+      setLastOptimizationMethod('mpt');
  console.log(' REAL portfolio optimization complete!');
     } catch (error) {
  console.error(' Portfolio optimization error:', error);
@@ -867,6 +924,11 @@ const QuantitativeAnalyticsTools: React.FC = () => {
         views
       );
 
+      // Validate API response
+      if (!results || !results.optimizedWeights) {
+        throw new Error(`Invalid Black-Litterman response: ${JSON.stringify(results).substring(0, 200)}`);
+      }
+
       setBlackLittermanResults({
         impliedReturns: results.impliedReturns,
         updatedReturns: results.updatedReturns,
@@ -875,19 +937,27 @@ const QuantitativeAnalyticsTools: React.FC = () => {
         optimizedWeights: results.optimizedWeights,
         expectedReturn: results.expectedReturn,
         volatility: results.volatility,
-        sharpeRatio: results.sharpeRatio
-      });
+        sharpeRatio: results.sharpeRatio,
+        efficientFrontier: results.efficientFrontier,
+        mptEfficientFrontier: results.mptEfficientFrontier,
+        minVolatilityPortfolio: results.minVolatilityPortfolio,
+        tradingDays: results.tradingDays,
+        timestamp: results.timestamp,
+        _debug: results._debug
+      } as any);
 
+      setLastOptimizationMethod('black-litterman');
  console.log(' Black-Litterman complete!');
     } catch (error) {
  console.error(' Black-Litterman error:', error);
-        // TODO: Implement exponential backoff retry logic
-        // Currently fails silently - not great UX
-        // TODO: Implement exponential backoff retry logic
-        // Currently fails silently - not great UX
-        // TODO: Implement exponential backoff retry logic
-        // Currently fails silently - not great UX
-      alert(`Black-Litterman failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+
+      // Provide helpful suggestions for singular matrix error
+      if (errorMsg.includes('Singular matrix')) {
+        alert(`Black-Litterman failed: Mathematical error (Singular Matrix)\n\nThis can happen when:\n• Using too few stocks (try 5+ stocks)\n• Stocks are highly correlated\n• Time period is too short (try 1+ year)\n• Insufficient historical data\n\nTry: More stocks, longer date range, or different stock selection`);
+      } else {
+        alert(`Black-Litterman failed: ${errorMsg}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -901,14 +971,46 @@ const QuantitativeAnalyticsTools: React.FC = () => {
       // Equal weights for all symbols
       const weights = selectedSymbols.map(() => 1.0 / selectedSymbols.length);
 
-      const riskMetrics = await QuantitativeAPI.runRiskAnalysis(
+      const riskMetricsResponse = await QuantitativeAPI.runRiskAnalysis(
         selectedSymbols,
         weights,
         backtestParams.startDate,
         backtestParams.endDate
       );
 
-      setRiskMetrics(riskMetrics);
+      console.log(' Risk metrics API response:', riskMetricsResponse);
+
+      // Validate API response
+      if (!riskMetricsResponse || !(riskMetricsResponse as any).metrics) {
+        throw new Error('Invalid response from risk metrics API');
+      }
+
+      const apiMetrics = (riskMetricsResponse as any).metrics;
+
+      // Transform backend response to match RiskMetrics interface
+      const riskMetrics: RiskMetrics = {
+        var: {
+          historical: { '95%': apiMetrics.var95 || 0, '99%': apiMetrics.var99 || 0 },
+          parametric: { '95%': apiMetrics.var95 || 0, '99%': apiMetrics.var99 || 0 },
+          monteCarlo: {},
+          conditional: { '95%': apiMetrics.cvar95 || 0, '99%': apiMetrics.cvar99 || 0 }
+        },
+        stressTesting: {
+          scenarios: [],
+          extremeEvents: []
+        },
+        factorExposure: {
+          styleFactors: {},
+          sectorFactors: {},
+          riskContribution: {}
+        }
+      };
+
+      // Store the raw metrics for display
+      setRiskMetrics({
+        ...riskMetrics,
+        ...(apiMetrics as any) // Spread all metrics for direct access
+      } as any);
  console.log(' Risk analysis complete!');
     } catch (error) {
  console.error(' Risk analysis error:', error);
@@ -936,9 +1038,9 @@ const QuantitativeAnalyticsTools: React.FC = () => {
         monteCarloParams.numSimulations,
         monteCarloParams.timeHorizon / 252, // Convert days to years
         monteCarloParams.initialValue
-      );
+      ) as any;
 
-      setMonteCarloResults(data);
+      setMonteCarloResults(monteCarloSimulation);
  console.log(' Monte Carlo complete!');
     } catch (error) {
  console.error(' Monte Carlo error:', error);
@@ -979,7 +1081,7 @@ const QuantitativeAnalyticsTools: React.FC = () => {
         >
           <div className="w-14 h-14 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <h2 className="text-sm font-bold text-[#1a1a1a] mb-2">Running Analytics</h2>
-          <p className="text-[#3C3C3C]">Processing quantitative analysis with real data...</p>
+          <p className="text-[#3C3C3C]">Processing quantitative analysis with real apiResult.data...</p>
         </motion.div>
       </div>
     );
@@ -1315,30 +1417,61 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="mb-3 flex gap-10">
+                    {/* Section Navigation Tabs */}
+                    <div className="mb-3 flex gap-3 border-b-2 border-black pb-2">
                       <Button
-                        onClick={runPortfolioOptimization}
-                        className="bg-playful-green hover:bg-playful-orange border-2 border-black"
-                        disabled={isLoading}
+                        onClick={() => setActiveOptimizationSection('mpt')}
+                        className={`${
+                          activeOptimizationSection === 'mpt'
+                            ? 'bg-playful-green border-2 border-black'
+                            : 'bg-white border-2 border-black text-[#1a1a1a] hover:bg-playful-cream'
+                        }`}
                       >
                         <Target className="w-4 h-4 mr-2" />
                         Modern Portfolio Theory
                       </Button>
                       <Button
-                        onClick={runBlackLittermanModel}
-                        className="bg-playful-green hover:bg-playful-orange"
-                        disabled={isLoading}
+                        onClick={() => setActiveOptimizationSection('bl')}
+                        className={`${
+                          activeOptimizationSection === 'bl'
+                            ? 'bg-playful-green border-2 border-black'
+                            : 'bg-white border-2 border-black text-[#1a1a1a] hover:bg-playful-cream'
+                        }`}
                       >
                         <Brain className="w-4 h-4 mr-2" />
                         Black-Litterman Model
                       </Button>
                     </div>
 
-                    {/* Black-Litterman Investor Views Configuration */}
+                    {/* MPT Section */}
+                    {activeOptimizationSection === 'mpt' && (
+                      <div className="space-y-3">
+                        <div className="bg-playful-cream p-3 rounded-2xl border-2 border-black">
+                          <p className="text-sm text-[#3C3C3C]">
+                            Modern Portfolio Theory optimizes your portfolio based purely on historical returns and risk.
+                            Select your stocks above and click Run to calculate the optimal allocation.
+                          </p>
+                        </div>
+
+                        <Button
+                          onClick={runPortfolioOptimization}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-black"
+                          disabled={isLoading}
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Run MPT Optimization
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Black-Litterman Section */}
+                    {activeOptimizationSection === 'bl' && (
+                      <div className="space-y-3">
+                        {/* Investor Views Configuration */}
                     <div className="mb-3 bg-playful-cream p-3 rounded-2xl border-2 border-black">
                       <h4 className="text-sm font-semibold text-[#1a1a1a] mb-3 flex items-center gap-2.5">
                         <Brain className="w-5 h-5 text-primary-400" />
-                        Investor Views Configuration
+                        Investor Views Configuration (Black-Litterman Only)
                       </h4>
                       <div className="space-y-3">
                         {investorViews.map((view, index) => (
@@ -1408,9 +1541,9 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                         <Button
                           onClick={() => {
                             setInvestorViews([...investorViews, {
-                              symbol: selectedSymbols[0] || 'AAPL',
+                              symbol: selectedSymbols[0] || 'AAPLx',
                               expectedReturn: 10,
-                              confidence: 70,
+                              confidence: 80,
                               description: 'New view'
                             }]);
                           }}
@@ -1433,44 +1566,121 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                           - Remove Last
                         </Button>
                       </div>
+
+                      {/* Note about modifying values */}
+                      <div className="mt-3 p-2.5 bg-blue-50 border-l-4 border-blue-400 rounded">
+                        <p className="text-xs text-blue-800">
+                          💡 <strong>Tip:</strong> Investor views are auto-populated from your stock selection with Expected Return: 10% and Confidence: 80%.
+                          Modify these values to match your market outlook before running the optimization.
+                        </p>
+                      </div>
                     </div>
 
-                    {portfolioOptimization ? (
-                      <EfficientFrontierChart
-                        data={{
-                          efficientFrontier: portfolioOptimization.efficientFrontier.map(point => ({
-                            return: point.return,
-                            volatility: point.risk,
-                            sharpe: point.return / point.risk, // Calculate Sharpe ratio from return/risk
-                            weights: point.weights
-                          })),
-                          optimalSharpe: {
-                            return: portfolioOptimization.maxSharpePortfolio.expectedReturn,
-                            volatility: portfolioOptimization.maxSharpePortfolio.volatility,
-                            sharpe: portfolioOptimization.maxSharpePortfolio.sharpeRatio,
-                            weights: portfolioOptimization.maxSharpePortfolio.weights
-                          },
-                          optimalMinVol: {
-                            return: portfolioOptimization.minVolatilityPortfolio.expectedReturn,
-                            volatility: portfolioOptimization.minVolatilityPortfolio.volatility,
-                            sharpe: portfolioOptimization.minVolatilityPortfolio.sharpe,
-                            weights: portfolioOptimization.minVolatilityPortfolio.weights
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="text-[#3C3C3C] text-center py-2.5 bg-playful-cream rounded-2xl border-2 border-black p-3">
-                        Run portfolio optimization to see efficient frontier and optimal allocations
+                        {/* Run BL Optimization Button */}
+                        <Button
+                          onClick={runBlackLittermanModel}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-black"
+                          disabled={isLoading}
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Run Black-Litterman Optimization
+                        </Button>
                       </div>
                     )}
 
-                    {/* Black-Litterman Results */}
-                    {blackLittermanResults && (
+                    {/* Modern Portfolio Theory Results - Only show in MPT section */}
+                    {portfolioOptimization && lastOptimizationMethod === 'mpt' && activeOptimizationSection === 'mpt' ? (
+                      <div className="mt-3">
+                        <h3 className="text-sm font-bold text-[#1a1a1a] mb-3 flex items-center gap-10">
+                          <TrendingUp className="w-6 h-6 text-primary-400" />
+                          Modern Portfolio Theory Results
+                        </h3>
+                        <EfficientFrontierChart
+                          data={{
+                            efficientFrontier: portfolioOptimization.efficientFrontier.map(point => ({
+                              return: point.return,
+                              volatility: point.risk,
+                              sharpe: point.return / point.risk, // Calculate Sharpe ratio from return/risk
+                              weights: point.weights
+                            })),
+                            optimalSharpe: {
+                              return: portfolioOptimization.maxSharpePortfolio.expectedReturn,
+                              volatility: portfolioOptimization.maxSharpePortfolio.volatility,
+                              sharpe: portfolioOptimization.maxSharpePortfolio.sharpeRatio,
+                              weights: portfolioOptimization.maxSharpePortfolio.weights
+                            },
+                            optimalMinVol: {
+                              return: portfolioOptimization.minVariancePortfolio.expectedReturn,
+                              volatility: portfolioOptimization.minVariancePortfolio.volatility,
+                              sharpe: portfolioOptimization.minVariancePortfolio.sharpe || 0,
+                              weights: portfolioOptimization.minVariancePortfolio.weights
+                            }
+                          }}
+                        />
+                      </div>
+                    ) : !lastOptimizationMethod ? (
+                      <div className="text-[#3C3C3C] text-center py-2.5 bg-playful-cream rounded-2xl border-2 border-black p-3">
+                        Run Modern Portfolio Theory or Black-Litterman to see optimization results
+                      </div>
+                    ) : null}
+
+                    {/* Black-Litterman Results - Only show in BL section */}
+                    {blackLittermanResults && lastOptimizationMethod === 'black-litterman' && activeOptimizationSection === 'bl' && (
                       <div className="mt-3 border-t-2 border-black pt-6">
                         <h3 className="text-sm font-bold text-[#1a1a1a] mb-3 flex items-center gap-10">
                           <Brain className="w-6 h-6 text-primary-400" />
                           Black-Litterman Model Results
                         </h3>
+
+                        {/* Black-Litterman Efficient Frontier with MPT Comparison */}
+                        {(() => {
+                          console.log('🔍 BL Results:', blackLittermanResults);
+                          console.log('🔍 Has efficientFrontier?', (blackLittermanResults as any).efficientFrontier);
+                          console.log('🔍 efficientFrontier length:', (blackLittermanResults as any).efficientFrontier?.length);
+                          return null;
+                        })()}
+                        {(blackLittermanResults as any).efficientFrontier && (
+                          <div className="mb-6">
+                            <h4 className="text-sm font-semibold text-[#1a1a1a] mb-3">Efficient Frontier Comparison</h4>
+                            <EfficientFrontierChart
+                              data={{
+                                efficientFrontier: (blackLittermanResults as any).efficientFrontier.map((point: any) => ({
+                                  return: point.return,
+                                  volatility: point.volatility,
+                                  sharpe: point.sharpe,
+                                  weights: point.weights
+                                })),
+                                optimalSharpe: {
+                                  return: blackLittermanResults.expectedReturn,
+                                  volatility: blackLittermanResults.volatility,
+                                  sharpe: blackLittermanResults.sharpeRatio,
+                                  weights: blackLittermanResults.optimizedWeights
+                                },
+                                optimalMinVol: (blackLittermanResults as any).minVolatilityPortfolio ? {
+                                  return: (blackLittermanResults as any).minVolatilityPortfolio.expectedReturn,
+                                  volatility: (blackLittermanResults as any).minVolatilityPortfolio.volatility,
+                                  sharpe: (blackLittermanResults as any).minVolatilityPortfolio.sharpe,
+                                  weights: (blackLittermanResults as any).minVolatilityPortfolio.weights
+                                } : undefined,
+                                mptFrontier: (blackLittermanResults as any).mptEfficientFrontier?.map((point: any) => ({
+                                  return: point.return,
+                                  volatility: point.volatility,
+                                  sharpe: point.sharpe,
+                                  weights: point.weights
+                                }))
+                              }}
+                            />
+                            <div className="mt-3 p-3 bg-playful-cream rounded-2xl border-2 border-black">
+                              <p className="text-sm text-[#3C3C3C]">
+                                <span className="font-semibold text-blue-600">Blue points:</span> Black-Litterman frontier (with investor views) |{' '}
+                                <span className="font-semibold text-gray-400">Gray points:</span> MPT frontier (historical data only)
+                              </p>
+                              <p className="text-sm text-[#3C3C3C] mt-2">
+                                Investor views shift the efficient frontier, showing how your beliefs modify the optimal risk/return tradeoff.
+                              </p>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                           {/* Investor Views */}
@@ -1685,18 +1895,18 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                             {correlationAnalysis.clusters.map((cluster, index) => (
                               <div key={index} className="border border-black/10 rounded p-3">
                                 <div className="flex justify-between items-center mb-2">
-                                  <span className="text-[#1a1a1a] font-medium">Cluster {cluster.id + 1}</span>
+                                  <span className="text-[#1a1a1a] font-medium">Cluster {index + 1}</span>
                                   <Badge className="bg-playful-green">{cluster.stocks.length} stocks</Badge>
                                 </div>
                                 <div className="text-sm mb-2 flex items-center gap-2">
                                   <span className="text-[#3C3C3C]">Avg Correlation:</span>
                                   <span className={`font-bold px-2 py-1 rounded-lg border-2 border-black text-white ${
-                                    cluster.averageCorrelation > 0.7 ? 'bg-playful-green' :
-                                    cluster.averageCorrelation > 0.5 ? 'bg-green-500' :
-                                    cluster.averageCorrelation > 0.3 ? 'bg-yellow-500' :
+                                    cluster.avgCorrelation > 0.7 ? 'bg-playful-green' :
+                                    cluster.avgCorrelation > 0.5 ? 'bg-green-500' :
+                                    cluster.avgCorrelation > 0.3 ? 'bg-yellow-500' :
                                     'bg-orange-400'
                                   }`}>
-                                    {cluster.averageCorrelation.toFixed(3)}
+                                    {cluster.avgCorrelation.toFixed(3)}
                                   </span>
                                 </div>
                                 <div className="flex flex-wrap gap-1.5">
@@ -1715,19 +1925,19 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                         <div className="bg-playful-cream p-3 rounded-2xl border-2 border-black lg:col-span-2">
                           <h4 className="text-sm font-semibold text-[#1a1a1a] mb-3">Principal Component Analysis</h4>
                           <div className="grid grid-cols-3 gap-10">
-                            {correlationAnalysis.principalComponents.map(pc => (
-                              <div key={pc.id} className="border border-black/10 rounded p-3">
-                                <div className="text-[#1a1a1a] font-medium mb-2">Component {pc.id}</div>
+                            {correlationAnalysis.principalComponents.map((pc, pcIdx) => (
+                              <div key={pcIdx} className="border border-black/10 rounded p-3">
+                                <div className="text-[#1a1a1a] font-medium mb-2">Component {pc.component}</div>
                                 <div className="text-sm space-y-1">
                                   <div className="flex justify-between items-center">
                                     <span className="text-[#3C3C3C]">Variance:</span>
                                     <span className={`font-bold px-2 py-1 rounded-lg border-2 border-black text-white text-xs ${
-                                      pc.varianceExplained > 40 ? 'bg-playful-green' :
-                                      pc.varianceExplained > 25 ? 'bg-green-500' :
-                                      pc.varianceExplained > 15 ? 'bg-yellow-500' :
+                                      pc.variance > 40 ? 'bg-playful-green' :
+                                      pc.variance > 25 ? 'bg-green-500' :
+                                      pc.variance > 15 ? 'bg-yellow-500' :
                                       'bg-orange-400'
                                     }`}>
-                                      {formatPercent(pc.varianceExplained)}
+                                      {formatPercent(pc.variance)}
                                     </span>
                                   </div>
                                   <div className="flex justify-between items-center">
@@ -1743,12 +1953,13 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                                   </div>
                                   <div className="mt-2">
                                     <div className="text-[#3C3C3C] text-sm mb-1">Top Contributors:</div>
-                                    {pc.topContributors
+                                    {Object.entries(pc.loadings)
+                                      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
                                       .slice(0, 3)
-                                      .map(contributor => (
-                                        <div key={contributor.symbol} className="flex justify-between text-sm">
-                                          <span className="text-[#1a1a1a]">{contributor.symbol}</span>
-                                          <span className="text-[#1a1a1a]">{contributor.loading.toFixed(3)}</span>
+                                      .map(([symbol, loading]) => (
+                                        <div key={symbol} className="flex justify-between text-sm">
+                                          <span className="text-[#1a1a1a]">{symbol}</span>
+                                          <span className="text-[#1a1a1a]">{loading.toFixed(3)}</span>
                                         </div>
                                       ))}
                                   </div>
@@ -1789,20 +2000,20 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                       </Button>
                     </div>
 
-                    {riskMetrics && riskMetrics.metrics ? (
+                    {riskMetrics && (riskMetrics as any).sharpeRatio !== undefined ? (
                       <RiskMetricsDashboard
                         data={{
-                          var95: riskMetrics.metrics.var95,
-                          var99: riskMetrics.metrics.var99,
-                          cvar95: riskMetrics.metrics.cvar95,
-                          cvar99: riskMetrics.metrics.cvar99,
-                          sharpeRatio: riskMetrics.metrics.sharpeRatio,
-                          sortinoRatio: riskMetrics.metrics.sortinoRatio,
-                          beta: riskMetrics.metrics.beta,
-                          alpha: riskMetrics.metrics.alpha,
-                          volatility: riskMetrics.metrics.annualVolatility,
-                          downsideVolatility: riskMetrics.metrics.downsideVolatility,
-                          correlationMatrix: riskMetrics.correlationMatrix
+                          var95: (riskMetrics as any).var95 || 0,
+                          var99: (riskMetrics as any).var99 || 0,
+                          cvar95: (riskMetrics as any).cvar95 || 0,
+                          cvar99: (riskMetrics as any).cvar99 || 0,
+                          sharpeRatio: (riskMetrics as any).sharpeRatio || 0,
+                          sortinoRatio: (riskMetrics as any).sortinoRatio || 0,
+                          beta: (riskMetrics as any).beta || 1,
+                          alpha: (riskMetrics as any).alpha || 0,
+                          volatility: (riskMetrics as any).annualVolatility || 0,
+                          downsideVolatility: (riskMetrics as any).downsideVolatility || 0,
+                          correlationMatrix: (riskMetrics as any).correlationMatrix || undefined
                         }}
                       />
                     ) : (
@@ -1943,12 +2154,13 @@ const QuantitativeAnalyticsTools: React.FC = () => {
                                 });
 
                                 // Calculate percentiles across all paths at this time point
-                                const valuesAtTimePoint = rawPaths.map(path => path[i]).sort((a, b) => a - b);
-                                dataPoint.percentile5 = valuesAtTimePoint[Math.floor(valuesAtTimePoint.length * 0.05)];
-                                dataPoint.percentile25 = valuesAtTimePoint[Math.floor(valuesAtTimePoint.length * 0.25)];
-                                dataPoint.percentile50 = valuesAtTimePoint[Math.floor(valuesAtTimePoint.length * 0.50)];
-                                dataPoint.percentile75 = valuesAtTimePoint[Math.floor(valuesAtTimePoint.length * 0.75)];
-                                dataPoint.percentile95 = valuesAtTimePoint[Math.floor(valuesAtTimePoint.length * 0.95)];
+                                const valuesAtTimePoint = rawPaths.map(path => Number(path[i]) || 0).sort((a, b) => a - b);
+                                const len = valuesAtTimePoint.length;
+                                dataPoint.percentile5 = valuesAtTimePoint[Math.floor(len * 0.05)] || 0;
+                                dataPoint.percentile25 = valuesAtTimePoint[Math.floor(len * 0.25)] || 0;
+                                dataPoint.percentile50 = valuesAtTimePoint[Math.floor(len * 0.50)] || 0;
+                                dataPoint.percentile75 = valuesAtTimePoint[Math.floor(len * 0.75)] || 0;
+                                dataPoint.percentile95 = valuesAtTimePoint[Math.floor(len * 0.95)] || 0;
 
                                 transformed.push(dataPoint);
                               }

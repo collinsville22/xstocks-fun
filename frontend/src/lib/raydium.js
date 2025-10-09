@@ -13,6 +13,11 @@ export class RaydiumService {
     // Rate limiting
     this.lastRequestTime = 0;
     this.minRequestInterval = 100; // 100ms between requests
+
+    // Priority fee cache
+    this.priorityFeeCache = null;
+    this.priorityFeeCacheTime = 0;
+    this.priorityFeeCacheDuration = 60000; // Cache for 60 seconds
   }
 
   /**
@@ -25,6 +30,58 @@ export class RaydiumService {
       await new Promise(resolve => setTimeout(resolve, this.minRequestInterval - timeSinceLastRequest));
     }
     this.lastRequestTime = Date.now();
+  }
+
+  /**
+   * Get dynamic priority fee from Raydium API
+   * @param {string} priority - Priority level: 'vh' (very high), 'h' (high), 'm' (medium)
+   * @returns {Promise<string>} Priority fee in micro-lamports as string
+   */
+  async getPriorityFee(priority = 'h') {
+    // Check cache first
+    const now = Date.now();
+    if (this.priorityFeeCache && (now - this.priorityFeeCacheTime) < this.priorityFeeCacheDuration) {
+      const fee = this.priorityFeeCache.data.default[priority];
+      console.log('[CACHE] Using cached priority fee:', fee, 'micro-lamports');
+      return String(fee);
+    }
+
+    await this._rateLimit();
+
+    try {
+      const response = await fetch(`${this.apiUrl}/compute/priority-fee`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('[ERROR] Priority fee API error:', response.status);
+        // Fallback to reasonable default
+        return '100000';
+      }
+
+      const data = await response.json();
+
+      if (!data.success || !data.data?.default) {
+        console.error('[ERROR] Invalid priority fee response:', data);
+        return '100000';
+      }
+
+      // Cache the response
+      this.priorityFeeCache = data;
+      this.priorityFeeCacheTime = now;
+
+      const fee = data.data.default[priority];
+      console.log('[SUCCESS] Fetched priority fee:', fee, 'micro-lamports (priority:', priority + ')');
+
+      return String(fee);
+    } catch (error) {
+      console.error('[ERROR] Failed to fetch priority fee:', error);
+      // Fallback to reasonable default
+      return '100000';
+    }
   }
 
   /**
@@ -106,8 +163,15 @@ export class RaydiumService {
   async getSwapTransaction(quoteResponse, walletPublicKey, options = {}) {
     await this._rateLimit();
 
+    // Get dynamic priority fee if not provided
+    let priorityFee = options.priorityFee;
+    if (!priorityFee) {
+      const priority = options.priorityLevel || 'h'; // Default to high priority
+      priorityFee = await this.getPriorityFee(priority);
+    }
+
     const requestBody = {
-      computeUnitPriceMicroLamports: String(options.priorityFee || 100000), // MUST be a string!
+      computeUnitPriceMicroLamports: String(priorityFee), // MUST be a string!
       swapResponse: quoteResponse, // Pass the whole quote response, not just data
       txVersion: options.txVersion || 'V0',
       wallet: walletPublicKey,

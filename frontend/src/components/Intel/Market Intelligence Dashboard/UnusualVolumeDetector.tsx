@@ -265,7 +265,7 @@ const UnusualVolumeDetector: React.FC = () => {
               {filter === 'all' ? 'All' : filter}
             </Button>
           ))}
-          <Badge variant="secondary" className="ml-2 bg-gray-700/50 text-[#1a1a1a]">
+          <Badge variant="outline" className="ml-2 bg-gray-700/50 text-[#1a1a1a]">
             {filteredData.length} stocks
           </Badge>
         </div>
@@ -385,7 +385,7 @@ const UnusualVolumeDetector: React.FC = () => {
                                   {stock.symbol}
                                 </span>
                                 <Badge
-                                  variant="secondary"
+                                  variant="outline"
                                   className={cn(colors.bg, colors.text, 'flex items-center gap-1.5')}
                                 >
                                   <AlertTriangle className="w-3 h-3" />
@@ -397,7 +397,7 @@ const UnusualVolumeDetector: React.FC = () => {
                               </p>
                             </div>
 
-                            <Badge variant="secondary" className="bg-gray-700/50 text-[#1a1a1a]">
+                            <Badge variant="outline" className="bg-gray-700/50 text-[#1a1a1a]">
                               {stock.sector}
                             </Badge>
                           </div>
@@ -459,7 +459,7 @@ const UnusualVolumeDetector: React.FC = () => {
                           {/* Alert Level Badge */}
                           <div className="mt-3 flex items-center justify-between">
                             <Badge
-                              variant="secondary"
+                              variant="outline"
                               className={cn(colors.bg, colors.text, 'uppercase text-sm font-bold')}
                             >
                               {alertLevel === 'extreme'

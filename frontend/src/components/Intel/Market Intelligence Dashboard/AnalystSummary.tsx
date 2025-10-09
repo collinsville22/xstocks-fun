@@ -134,14 +134,14 @@ export const AnalystSummary: React.FC = () => {
       const response = await fetch(`${ENV.INTEL_API_URL}/api/market/analyst-summary?period=${period}`);
       const apiResult = await response.json();
 
-      if (result.success) {
-        setData(result);
+      if (apiResult.success) {
+        setData(apiResult);
         const now = new Date();
         setLastUpdated(now);
 
         // Cache the data aggressively
         localStorage.setItem(cacheKey, JSON.stringify({
-          data: result,
+          data: apiResult,
           timestamp: now.getTime()
         }));
       }

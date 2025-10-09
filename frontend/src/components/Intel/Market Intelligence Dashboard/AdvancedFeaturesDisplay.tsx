@@ -252,10 +252,10 @@ const AdvancedFeaturesDisplay: React.FC<AdvancedFeaturesProps> = ({
           <div className="mb-3">
             <h3 className="text-sm font-bold text-[#1a1a1a] mb-2">{overview.name}</h3>
             <div className="flex items-center gap-2.5 mb-3">
-              <Badge variant="secondary" className="bg-blue-400/20 text-blue-400">
+              <Badge variant="outline" className="bg-blue-400/20 text-blue-400">
                 {overview.sector}
               </Badge>
-              <Badge variant="secondary" className="glass-card">
+              <Badge variant="outline" className="glass-card">
                 {overview.industry}
               </Badge>
             </div>

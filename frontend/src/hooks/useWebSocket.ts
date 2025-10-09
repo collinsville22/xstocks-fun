@@ -104,7 +104,7 @@ export const useWebSocket = (options: UseWebSocketOptions): UseWebSocketReturn =
 
       wsRef.current.onerror = (error) => {
         console.error('WebSocket error:', error);
-        onError?.(error as Error);
+        onError?.(new Error(error instanceof Event ? 'WebSocket error' : String(error)));
       };
 
     } catch (error) {

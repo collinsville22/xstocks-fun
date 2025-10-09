@@ -461,7 +461,7 @@ const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
 
     // Perform k-means clustering
     const k = Math.min(4, Math.floor(stocks.length / 5));
-    const assignments = kMeansCluster(data, k);
+    const assignments = kMeansCluster(chartData, k);
 
     // Group stocks by cluster
     const clusterGroups: ClusterGroup[] = [];

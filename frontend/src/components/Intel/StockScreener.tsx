@@ -209,7 +209,7 @@ export const StockScreener: React.FC = () => {
       }
 
       const apiResponse = await response.json();
-      setResults(data.results || []);
+      setResults(apiResponse.results || []);
     } catch (error) {
       console.error('Screener error:', error);
         // TODO: Implement exponential backoff retry logic

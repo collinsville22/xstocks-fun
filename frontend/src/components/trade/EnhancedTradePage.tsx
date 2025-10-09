@@ -1,9 +1,7 @@
 import React from 'react';
 import { SwapInterface } from './SwapInterface';
 import { LowBalancePrompt } from './LowBalancePrompt';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { defaultWalletConfig } from '../../lib/walletConfig';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Token } from '../../types';
 
 interface EnhancedTradePageProps {
@@ -53,10 +51,7 @@ export const EnhancedTradePage: React.FC<EnhancedTradePageProps> = ({ tokens, on
 
 
   return (
-    <ConnectionProvider endpoint={defaultWalletConfig.endpoint}>
-      <WalletProvider wallets={defaultWalletConfig.wallets} autoConnect={defaultWalletConfig.autoConnect}>
-        <WalletModalProvider>
-          <div className="min-h-screen relative">
+    <div className="min-h-screen relative">
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-3 sm:px-3 lg:px-3 py-2.5 relative z-10">
 
@@ -105,9 +100,6 @@ export const EnhancedTradePage: React.FC<EnhancedTradePageProps> = ({ tokens, on
                 </div>
               </div>
             </footer>
-          </div>
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    </div>
   );
 };

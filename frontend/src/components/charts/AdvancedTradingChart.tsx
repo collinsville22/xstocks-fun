@@ -126,32 +126,35 @@ const AdvancedTradingChart: React.FC<AdvancedTradingChartProps> = ({
     // Create main series based on chart type
     let series;
     if (chartType === 'candlestick') {
-      series = chart.addCandlestickSeries({
+      series = (chart.addSeries({
+        type: 'Candlestick',
         upColor: '#7EC850',
         downColor: '#EF4444',
         borderUpColor: '#7EC850',
         borderDownColor: '#EF4444',
         wickUpColor: '#7EC850',
         wickDownColor: '#EF4444',
-      });
+      } as any) as any);
       series.setData(data);
     } else if (chartType === 'line') {
-      series = chart.addLineSeries({
+      series = (chart.addSeries({
+        type: 'Line',
         color: '#7EC850',
         lineWidth: 2,
-      });
+      } as any) as any);
       const lineData: LineData[] = data.map(d => ({
         time: d.time,
         value: d.close
       }));
       series.setData(lineData);
     } else {
-      series = chart.addAreaSeries({
+      series = (chart.addSeries({
+        type: 'Area',
         lineColor: '#7EC850',
         topColor: 'rgba(126, 200, 80, 0.4)',
         bottomColor: 'rgba(126, 200, 80, 0.0)',
         lineWidth: 2,
-      });
+      } as any) as any);
       const areaData: LineData[] = data.map(d => ({
         time: d.time,
         value: d.close
@@ -163,13 +166,14 @@ const AdvancedTradingChart: React.FC<AdvancedTradingChartProps> = ({
 
     // Add volume series if enabled
     if (volumeVisible && 'volume' in data[0]) {
-      const volumeSeries = chart.addHistogramSeries({
+      const volumeSeries = chart.addSeries({
+        type: 'Histogram',
         color: '#26a69a',
         priceFormat: {
           type: 'volume',
         },
         priceScaleId: '',
-      });
+      } as any) as any;
 
       volumeSeries.priceScale().applyOptions({
         scaleMargins: {
@@ -185,18 +189,19 @@ const AdvancedTradingChart: React.FC<AdvancedTradingChartProps> = ({
       }));
 
       volumeSeries.setData(volumeData);
-      volumeSeriesRef.current = volumeSeries;
+      volumeSeriesRef.current = volumeSeries as any;
     }
 
     // Add indicators (SMA, EMA, etc.)
     indicators.forEach(indicator => {
       if (indicator.visible) {
-        const indicatorSeries = chart.addLineSeries({
+        const indicatorSeries = (chart.addSeries({
+          type: 'Line',
           color: indicator.color,
           lineWidth: 2,
           priceLineVisible: false,
           lastValueVisible: false,
-        });
+        } as any) as any);
 
         // Calculate indicator values (simplified for demo)
         let indicatorData: LineData[] = [];

@@ -22,6 +22,7 @@ interface TechnicalIndicator {
   };
   sma20: number;
   sma50: number;
+  sma200?: number;
   bollinger: {
     upper: number;
     middle: number;
@@ -298,7 +299,7 @@ const MarketIndices: React.FC<MarketIndicesProps> = React.memo(({
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-[#3C3C3C]">RSI</span>
-                          <Badge variant="secondary" className={cn('text-sm', rsiStatus.bg, rsiStatus.color)}>
+                          <Badge variant="outline" className={cn('text-sm', rsiStatus.bg, rsiStatus.color)}>
                             {rsiStatus.label}
                           </Badge>
                         </div>
@@ -315,7 +316,7 @@ const MarketIndices: React.FC<MarketIndicesProps> = React.memo(({
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-[#3C3C3C]">MACD</span>
-                          <Badge variant="secondary" className={cn(
+                          <Badge variant="outline" className={cn(
                             'text-sm',
                             macdSignal.color === 'text-green-400' ? 'bg-green-400/20' :
                             macdSignal.color === 'text-red-400' ? 'bg-red-400/20' : 'bg-gray-400/20'
@@ -354,7 +355,7 @@ const MarketIndices: React.FC<MarketIndicesProps> = React.memo(({
                       <div className="space-y-2">
                         <span className="text-sm text-[#3C3C3C]">Trend Signal</span>
                         <div className="flex items-center justify-between">
-                          <Badge variant="secondary" className={cn(
+                          <Badge variant="outline" className={cn(
                             'text-sm',
                             trendSignal.color === 'text-green-400' ? 'bg-green-400/20' :
                             trendSignal.color === 'text-red-400' ? 'bg-red-400/20' :

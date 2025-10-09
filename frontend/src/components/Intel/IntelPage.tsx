@@ -95,7 +95,11 @@ const dashboards: DashboardConfig[] = [
   }
 ];
 
-const IntelPage: React.FC = () => {
+interface IntelPageProps {
+  tokens?: any;
+}
+
+const IntelPage: React.FC<IntelPageProps> = ({ tokens }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeDashboard, setActiveDashboard] = useState<DashboardType>('market');
 

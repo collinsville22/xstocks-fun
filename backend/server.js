@@ -47,9 +47,18 @@ const PORT = SERVER.PORT;
 // Create HTTP server for WebSocket support
 const server = createServer(app);
 
-// Middleware - Restrict CORS to localhost frontend only
+// Middleware - CORS configuration
 app.use(cors({
-  origin: SERVER.FRONTEND_URL,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    if (SERVER.ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

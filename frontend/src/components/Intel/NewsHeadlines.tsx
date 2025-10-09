@@ -48,7 +48,7 @@ export const NewsHeadlines: React.FC<NewsHeadlinesProps> = ({ symbol }) => {
       }
 
       const apiResponse = await response.json();
-      setNews(data.news || []);
+      setNews(apiResponse.news || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load news');
       console.error('Error fetching news:', err);
@@ -194,13 +194,13 @@ export const NewsHeadlines: React.FC<NewsHeadlinesProps> = ({ symbol }) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2.5 mb-2">
                           <Badge
-                            variant="secondary"
+                            variant="outline"
                             className="bg-playful-green/20 text-playful-green border-2 border-black text-sm font-semibold"
                           >
                             {symbol}
                           </Badge>
                           <Badge
-                            variant="secondary"
+                            variant="outline"
                             className={cn('text-sm', getTypeColor(article.type))}
                           >
                             {article.type.replace('_', ' ')}

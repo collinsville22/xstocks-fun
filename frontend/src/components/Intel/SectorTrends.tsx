@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '../ui/card';
 import { ENV } from '../../config/env';
 
 interface SectorData {
@@ -38,7 +38,7 @@ export const SectorTrends: React.FC = () => {
       const response = await fetch(`${ENV.INTEL_API_URL}/api/sectors`);
       if (!response.ok) throw new Error('Failed to fetch sector data');
       const apiResult = await response.json();
-      setData(result);
+      setData(apiResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load sector data');
     } finally {

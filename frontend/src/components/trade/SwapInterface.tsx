@@ -18,9 +18,11 @@ interface SwapInterfaceProps {
 }
 
 export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstocks, onSwapComplete, preselectedBuyToken }) => {
-  const { connected, publicKey, sendTransaction } = useWallet();
+  const { connected, publicKey, sendTransaction, signTransaction } = useWallet();
   const { connection } = useConnection();
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
+  const [slippageBps, setSlippageBps] = useState(50); // 0.5% default
+  const [showSlippageSettings, setShowSlippageSettings] = useState(false);
 
   // Find the preselected token if provided
  console.log('[DEBUG] SwapInterface - Preselected buy token:', preselectedBuyToken);
@@ -37,7 +39,8 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
     loading: false,
     error: null as string | null,
     success: null as string | null,
-    quote: null as QuoteResponse | null
+    quote: null as QuoteResponse | null,
+    priceImpact: null as string | null
   });
 
   // Get all tokens for balance/price fetching
@@ -87,6 +90,7 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
       toAmount: '',
       loading: false,
       error: null,
+      success: null,
       quote: null
     });
   }, [tradeType, baseTokens, xstocks]);
@@ -136,6 +140,22 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
         return;
       }
 
+      // Check if swapping SOL - need to leave enough for fees and rent
+      const isSwappingSOL = state.fromToken.mint === 'So11111111111111111111111111111111111111112';
+      if (isSwappingSOL && balances[state.fromToken.mint]) {
+        const walletBalance = balances[state.fromToken.mint].uiAmount;
+        // Account for: token account creation (~0.002 SOL) + tx fees (~0.0005 SOL) + priority fees + buffer
+        const estimatedFees = 0.0025;
+
+        if (rawAmount > walletBalance - estimatedFees) {
+          updateState({
+            loading: false,
+            error: `Insufficient SOL. You need ${(rawAmount + estimatedFees).toFixed(4)} SOL total (${rawAmount.toFixed(4)} swap + ${estimatedFees.toFixed(4)} estimated fees). Maximum you can swap: ${(walletBalance - estimatedFees).toFixed(4)} SOL`
+          });
+          return;
+        }
+      }
+
       const adjustedAmount = Math.floor(rawAmount * Math.pow(10, state.fromToken.decimals)).toString();
 
       // Detect if we need to use Raydium for xStocks
@@ -159,22 +179,34 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
           state.fromToken.mint,
           state.toToken.mint,
           adjustedAmount,
-          50 // 0.5% slippage
+          slippageBps // Use configurable slippage
         );
 
         const toAmount = (parseInt(raydiumQuote.data.outputAmount) / Math.pow(10, state.toToken.decimals)).toFixed(6);
+        const priceImpact = raydiumQuote.data.priceImpactPct || '0';
+
+        // Check for high price impact and warn user
+        const priceImpactNum = parseFloat(priceImpact);
+        let warningMessage = null;
+        if (priceImpactNum > 5) {
+          warningMessage = `⚠️ VERY HIGH PRICE IMPACT: ${priceImpact}%! This trade will result in significant slippage.`;
+        } else if (priceImpactNum > 1) {
+          warningMessage = `⚠️ High price impact: ${priceImpact}%. Consider reducing your trade size.`;
+        }
 
         updateState({
           quote: {
             ...raydiumQuote.data,
             outAmount: raydiumQuote.data.outputAmount,
             inAmount: raydiumQuote.data.inputAmount,
-            priceImpactPct: raydiumQuote.data.priceImpactPct || '0',
+            priceImpactPct: priceImpact,
             _isRaydium: true, // Flag to identify Raydium quote
             _raydiumQuoteResponse: raydiumQuote // Store the original response for transaction API
           } as any,
           toAmount,
-          loading: false
+          priceImpact: priceImpact,
+          loading: false,
+          error: warningMessage
         });
       } else {
         // Use Jupiter for regular swaps
@@ -217,8 +249,14 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
   }, [state.fromAmount, state.fromToken, state.toToken, fetchQuote]);
 
   const handleSwap = useCallback(async () => {
-    if (!connected || !state.quote || !publicKey || !sendTransaction) {
+    if (!connected || !state.quote || !publicKey) {
       updateState({ error: 'Please connect your wallet first' });
+      return;
+    }
+
+    // Check if wallet supports transaction signing
+    if (!signTransaction) {
+      updateState({ error: 'Your wallet does not support transaction signing. Please use a compatible wallet like Phantom or Solflare.' });
       return;
     }
 
@@ -261,6 +299,19 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
 
  console.log('Token accounts:', { isInputSol, isOutputSol, inputAccount, outputAccount });
 
+        // Log swap details for debugging
+        console.log('[DEBUG] Swap parameters:', {
+          fromToken: state.fromToken?.symbol,
+          toToken: state.toToken?.symbol,
+          fromAmount: state.fromAmount,
+          toAmount: state.toAmount,
+          isInputSol,
+          isOutputSol,
+          inputAccount,
+          outputAccount,
+          walletBalance: balances[state.fromToken!.mint]?.uiAmount
+        });
+
         // Get transaction from Raydium using the original quote response
         const raydiumTx = await raydiumService.getSwapTransaction(
           (state.quote as any)._raydiumQuoteResponse,
@@ -275,21 +326,106 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
         );
 
  console.log('[SUCCESS] Transaction received from Raydium API');
- console.log('Transaction data type:', typeof raydiumTx.data[0]);
- console.log('Transaction data:', raydiumTx.data[0]);
+ console.log('Raydium response structure:', {
+          hasData: !!raydiumTx.data,
+          dataType: typeof raydiumTx.data,
+          isArray: Array.isArray(raydiumTx.data),
+          dataKeys: raydiumTx.data ? Object.keys(raydiumTx.data) : [],
+          fullData: raydiumTx.data
+        });
 
         // Deserialize transaction - Raydium returns array with transaction at index 0
-        const txData = raydiumTx.data[0];
-        const transactionBuffer = Buffer.from(txData.transaction || txData, 'base64');
+        let transactionData;
+        if (Array.isArray(raydiumTx.data)) {
+          transactionData = raydiumTx.data[0];
+          console.log('Using array index [0], type:', typeof transactionData);
+        } else {
+          transactionData = raydiumTx.data;
+          console.log('Using data directly, type:', typeof transactionData);
+        }
+
+        // Extract the base64 transaction string
+        const txBase64 = typeof transactionData === 'string'
+          ? transactionData
+          : transactionData.transaction;
+
+        console.log('Transaction base64 length:', txBase64?.length);
+
+        if (!txBase64) {
+          throw new Error('No transaction data received from Raydium');
+        }
+
+        const transactionBuffer = new Uint8Array(Buffer.from(txBase64, 'base64'));
         const transaction = VersionedTransaction.deserialize(transactionBuffer);
  console.log('[SUCCESS] Deserialized transaction');
 
- console.log('[INFO] Sending transaction to wallet for signature...');
+        // Simulate transaction before signing to catch errors early
+ console.log('[INFO] Simulating transaction...');
+        try {
+          const simulation = await connection.simulateTransaction(transaction);
+          if (simulation.value.err) {
+            console.error('[ERROR] Transaction simulation failed:', simulation.value.err);
+            console.error('[ERROR] Simulation logs:', simulation.value.logs);
+            throw new Error(`Transaction will fail: ${JSON.stringify(simulation.value.err)}`);
+          }
+          console.log('[SUCCESS] Transaction simulation passed');
+          console.log('[INFO] Simulation logs:', simulation.value.logs);
+        } catch (simError) {
+          console.error('[ERROR] Simulation error:', simError);
+          throw new Error(`Transaction simulation failed: ${simError instanceof Error ? simError.message : 'Unknown error'}`);
+        }
 
-        // Sign and send transaction
-        const signature = await sendTransaction(transaction, connection);
+ console.log('[INFO] Requesting wallet signature...');
 
- console.log('[SUCCESS] Transaction sent:', signature);
+        // Sign transaction with wallet adapter
+        let signedTransaction;
+        try {
+          signedTransaction = await signTransaction(transaction);
+          console.log('[SUCCESS] Transaction signed by wallet');
+        } catch (signError) {
+          console.error('[ERROR] Wallet signature rejected:', signError);
+          throw new Error('Transaction signing was rejected. Please approve the transaction in your wallet.');
+        }
+
+        // Send signed transaction to network
+        // Note: Raydium docs recommend skipPreflight: true for versioned transactions
+        let signature;
+        try {
+          console.log('[INFO] Sending signed transaction to network...');
+          const rawTransaction = signedTransaction.serialize();
+          signature = await connection.sendRawTransaction(rawTransaction, {
+            skipPreflight: true, // Required for Raydium transactions
+            maxRetries: 3,
+          });
+          console.log('[SUCCESS] Transaction sent:', signature);
+
+          // Wait for confirmation
+          console.log('[INFO] Waiting for transaction confirmation...');
+          const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+          if (confirmation.value.err) {
+            // Get transaction logs for debugging
+            console.error('[ERROR] Transaction failed on-chain. Fetching logs...');
+            try {
+              const txDetails = await connection.getTransaction(signature, {
+                maxSupportedTransactionVersion: 0,
+              });
+              console.error('[ERROR] Transaction logs:', txDetails?.meta?.logMessages);
+            } catch (logError) {
+              console.error('[ERROR] Could not fetch transaction logs:', logError);
+            }
+            throw new Error('Transaction failed: ' + JSON.stringify(confirmation.value.err));
+          }
+          console.log('[SUCCESS] Transaction confirmed');
+        } catch (txError) {
+          console.error('[ERROR] Transaction send failed:', txError);
+          console.error('Transaction error details:', {
+            name: txError?.name,
+            message: txError?.message,
+            code: txError?.code,
+            logs: txError?.logs,
+          });
+          throw new Error(txError?.message || 'Failed to send transaction to network. Please try again.');
+        }
 
         updateState({
           success: `Swap successful! ${signature.slice(0, 8)}...${signature.slice(-8)}`,
@@ -317,7 +453,7 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
  console.log('[SUCCESS] Transaction received from Ultra API order');
 
         // Convert base64 transaction to buffer
-        const transactionBuffer = Buffer.from(transactionData, 'base64');
+        const transactionBuffer = new Uint8Array(Buffer.from(transactionData, 'base64'));
 
         // Deserialize transaction (Ultra API uses VersionedTransaction)
         let transaction;
@@ -408,7 +544,7 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
         updateState({ error: null });
       }, 8000);
     }
-  }, [connected, state.quote, publicKey, sendTransaction, connection, onSwapComplete, updateState]);
+  }, [connected, state.quote, publicKey, signTransaction, sendTransaction, connection, onSwapComplete, updateState, state.fromToken, state.toToken]);
 
   const handleSwapDirection = useCallback(() => {
     // Toggle between buy and sell mode
@@ -445,31 +581,80 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
           <h3 className="text-xs font-display font-semibold text-[#2C2C2C]">Swap</h3>
 
           {/* Trade Type Toggle */}
-          <div className="flex bg-white/50 rounded-2xl p-1 gap-2.5 border-2 border-black/10">
+          <div className="flex items-center gap-2.5">
+            <div className="flex bg-white/50 rounded-2xl p-1 gap-2.5 border-2 border-black/10">
+              <button
+                onClick={() => setTradeType('buy')}
+                className={`px-3 py-2.5 rounded-2xl text-xs font-display font-semibold transition-all duration-200 border-2 ${
+                  tradeType === 'buy'
+                    ? 'bg-playful-green text-white border-black shadow-lg'
+                    : 'bg-white/80 text-[#5C5C5C] border-black/20 hover:bg-white'
+                }`}
+                aria-pressed={tradeType === 'buy'}
+              >
+                Buy xStocks
+              </button>
+              <button
+                onClick={() => setTradeType('sell')}
+                className={`px-3 py-2.5 rounded-2xl text-xs font-display font-semibold transition-all duration-200 border-2 ${
+                  tradeType === 'sell'
+                    ? 'bg-red-500 text-white border-black shadow-lg'
+                    : 'bg-white/80 text-[#5C5C5C] border-black/20 hover:bg-white'
+                }`}
+                aria-pressed={tradeType === 'sell'}
+              >
+                Sell xStocks
+              </button>
+            </div>
+
+            {/* Slippage Settings Button */}
             <button
-              onClick={() => setTradeType('buy')}
-              className={`px-3 py-2.5 rounded-2xl text-xs font-display font-semibold transition-all duration-200 border-2 ${
-                tradeType === 'buy'
-                  ? 'bg-playful-green text-white border-black shadow-lg'
-                  : 'bg-white/80 text-[#5C5C5C] border-black/20 hover:bg-white'
-              }`}
-              aria-pressed={tradeType === 'buy'}
+              onClick={() => setShowSlippageSettings(!showSlippageSettings)}
+              className="p-2.5 bg-white/50 rounded-2xl border-2 border-black/10 hover:bg-white transition-all duration-200"
+              title="Slippage Settings"
             >
-              Buy xStocks
-            </button>
-            <button
-              onClick={() => setTradeType('sell')}
-              className={`px-3 py-2.5 rounded-2xl text-xs font-display font-semibold transition-all duration-200 border-2 ${
-                tradeType === 'sell'
-                  ? 'bg-red-500 text-white border-black shadow-lg'
-                  : 'bg-white/80 text-[#5C5C5C] border-black/20 hover:bg-white'
-              }`}
-              aria-pressed={tradeType === 'sell'}
-            >
-              Sell xStocks
+              <svg className="w-5 h-5 text-[#5C5C5C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </button>
           </div>
         </div>
+
+        {/* Slippage Settings Panel */}
+        {showSlippageSettings && (
+          <div className="bg-white/90 border-2 border-black/20 rounded-2xl p-3 mb-3 animate-slide-up">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-display font-semibold text-[#2C2C2C]">Slippage Tolerance</span>
+              <span className="text-xs font-body text-[#5C5C5C]">{(slippageBps / 100).toFixed(2)}%</span>
+            </div>
+            <div className="flex gap-2.5 mb-2">
+              {[10, 50, 100, 300].map((bps) => (
+                <button
+                  key={bps}
+                  onClick={() => setSlippageBps(bps)}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-display font-semibold transition-all duration-200 border-2 ${
+                    slippageBps === bps
+                      ? 'bg-playful-green text-white border-black shadow-lg'
+                      : 'bg-white/80 text-[#5C5C5C] border-black/20 hover:bg-white'
+                  }`}
+                >
+                  {(bps / 100).toFixed(1)}%
+                </button>
+              ))}
+            </div>
+            <input
+              type="number"
+              value={slippageBps / 100}
+              onChange={(e) => setSlippageBps(Math.round(parseFloat(e.target.value) * 100))}
+              className="w-full px-2 py-1.5 bg-white border-2 border-black/10 rounded-lg text-xs font-body text-[#2C2C2C] focus:outline-none focus:border-playful-green"
+              placeholder="Custom %"
+              step="0.01"
+              min="0.01"
+              max="50"
+            />
+          </div>
+        )}
 
         {state.error && (
           <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 rounded-2xl flex items-center animate-slide-up" role="alert">
@@ -603,7 +788,7 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
 
         {/* Quote Info - Playful Design */}
         {state.quote && (
-          <div className="bg-white/70 border-2 border-black/10 rounded-2xl p-3 animate-slide-up">
+          <div className="bg-white/70 border-2 border-black/10 rounded-2xl p-3 animate-slide-up space-y-2">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2.5">
                 <span className="text-[#5C5C5C] font-body">Price Impact</span>
@@ -622,6 +807,16 @@ export const SwapInterface: React.FC<SwapInterfaceProps> = ({ baseTokens, xstock
                   (parseFloat(state.quote.outAmount) / parseFloat(state.quote.inAmount)).toFixed(6)
                 } {state.toToken?.symbol}
               </div>
+            </div>
+            <div className="flex items-center justify-between text-xs border-t border-black/10 pt-2">
+              <span className="text-[#5C5C5C] font-body">Minimum Received</span>
+              <span className="font-display font-semibold text-[#2C2C2C] tabular-nums">
+                {(() => {
+                  const minReceived = (parseFloat(state.quote.outAmount) * (10000 - slippageBps)) / 10000;
+                  const minReceivedUI = (minReceived / Math.pow(10, state.toToken?.decimals || 9)).toFixed(6);
+                  return `${minReceivedUI} ${state.toToken?.symbol}`;
+                })()}
+              </span>
             </div>
           </div>
         )}

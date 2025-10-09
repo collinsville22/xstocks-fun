@@ -1,3 +1,9 @@
+// Buffer polyfill for browser compatibility
+import { Buffer } from 'buffer';
+if (typeof window !== 'undefined') {
+  window.Buffer = Buffer;
+}
+
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -83,7 +89,7 @@ const App: React.FC = () => {
         setError(null);
       } catch (error) {
  console.error('Error loading data:', error);
-        setError('Failed to load data. Please try again later.');
+        setError('Failed to load apiResponse. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -261,8 +267,8 @@ const App: React.FC = () => {
         {activePage === 'intel' && <IntelPage tokens={intelTokens || {}} />}
         {activePage === 'trade' && <EnhancedTradePage tokens={tradeTokens} onBuyClick={() => setActivePage('buy')} />}
         {activePage === 'buy' && <BuyPage />}
-        {activePage === 'portfolio' && <PortfolioPage tokens={tradeTokens} intelData={intelTokens || {}} />}
-        {activePage === 'bridge' && <BridgePage tokens={intelTokens || {}} />}
+        {activePage === 'portfolio' && <PortfolioPage tokens={tradeTokens} intelData={(intelTokens || {}) as XStockData} />}
+        {activePage === 'bridge' && <BridgePage tokens={Object.values(intelTokens || {})} />}
         {activePage === 'learn' && <LearnPage />}
       </div>
     </div>

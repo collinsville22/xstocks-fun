@@ -82,7 +82,7 @@ export class WebSocketClient {
     };
 
     // Initialize event listeners
-    (Object.keys(WebSocketClient.prototype.getEventMap()) as Array<keyof WebSocketEventMap>).forEach(event => {
+    (Object.keys(WebSocketClient.getEventMap()) as Array<keyof WebSocketEventMap>).forEach(event => {
       this.eventListeners.set(event, []);
     });
   }

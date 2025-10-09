@@ -144,7 +144,7 @@ export const RiskGauges: React.FC<RiskGaugesProps> = ({
             {label}
           </div>
           <Badge
-            variant="secondary"
+            variant="outline"
             className={cn('text-sm', 'border')}
             style={{
               backgroundColor: currentZone.color + '20',

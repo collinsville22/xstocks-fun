@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { GlassCard } from './ui/GlassCard';
-import { StockTooltip } from './StockTooltip';
+import { StockTooltip } from './ui/StockTooltip';
 import { cn } from '../../../lib/utils';
 import { getStockLogo } from '../../../utils/stockImages';
 import { TrendingUp, TrendingDown, Zap, BarChart3, RefreshCw, Award, AlertTriangle, Star, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
@@ -186,7 +186,7 @@ const TopMovers: React.FC<TopMoversProps> = React.memo(({
               <Activity className="w-5 h-5 text-yellow-400" />
               Market Pulse
             </h3>
-            <Badge variant="secondary" className={cn(momentumData.bg, momentumData.color)}>
+            <Badge variant="outline" className={cn(momentumData.bg, momentumData.color)}>
               {marketPulse.momentum.toUpperCase()}
             </Badge>
           </div>
@@ -227,7 +227,7 @@ const TopMovers: React.FC<TopMoversProps> = React.memo(({
                 <MomentumIcon className="w-4 h-4" />
                 <span className="text-sm text-[#1a1a1a]">Momentum</span>
               </div>
-              <Badge variant="secondary" className={cn(momentumData.bg, momentumData.color)}>
+              <Badge variant="outline" className={cn(momentumData.bg, momentumData.color)}>
                 {marketPulse.momentum.toUpperCase()}
               </Badge>
             </div>
@@ -240,7 +240,7 @@ const TopMovers: React.FC<TopMoversProps> = React.memo(({
                 <div className="text-sm font-bold text-[#1a1a1a]">
                   {marketPulse.fearGreedIndex}
                 </div>
-                <Badge variant="secondary" className={cn(fearGreedData.bg, fearGreedData.color)}>
+                <Badge variant="outline" className={cn(fearGreedData.bg, fearGreedData.color)}>
                   {fearGreedData.label}
                 </Badge>
               </div>
@@ -277,7 +277,7 @@ const TopMovers: React.FC<TopMoversProps> = React.memo(({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2.5">
                           <span className="text-sm font-bold text-[#1a1a1a]">{stock.symbol}</span>
-                          <Badge variant="secondary" className="text-sm bg-white border-2 border-black">
+                          <Badge variant="outline" className="text-sm bg-white border-2 border-black">
                             {stock.sector}
                           </Badge>
                         </div>
@@ -334,7 +334,7 @@ const TopMovers: React.FC<TopMoversProps> = React.memo(({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2.5">
                           <span className="text-sm font-bold text-[#1a1a1a]">{stock.symbol}</span>
-                          <Badge variant="secondary" className="text-sm bg-white border-2 border-black">
+                          <Badge variant="outline" className="text-sm bg-white border-2 border-black">
                             {stock.sector}
                           </Badge>
                         </div>
@@ -391,7 +391,7 @@ const TopMovers: React.FC<TopMoversProps> = React.memo(({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2.5">
                           <span className="text-sm font-bold text-[#1a1a1a]">{stock.symbol}</span>
-                          <Badge variant="secondary" className="text-sm bg-white border-2 border-black">
+                          <Badge variant="outline" className="text-sm bg-white border-2 border-black">
                             {stock.sector}
                           </Badge>
                           <Star className="w-3 h-3 text-yellow-400 fill-current" />

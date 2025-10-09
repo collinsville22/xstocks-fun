@@ -138,7 +138,7 @@ export const OptionsScreener: React.FC<OptionsScreenerProps> = ({ className }) =
       }
 
       const apiResponse = await response.json();
-      setResults(data.results || []);
+      setResults(apiResponse.results || []);
     } catch (error) {
       console.error('Error screening options:', error);
         // TODO: Implement exponential backoff retry logic
@@ -577,7 +577,7 @@ export const OptionsScreener: React.FC<OptionsScreenerProps> = ({ className }) =
                       </td>
                       <td className="px-3 py-2.5 text-sm">
                         <Badge
-                          variant="secondary"
+                          variant="outline"
                           className={cn(
                             'text-sm',
                             option.type === 'CALL' ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-red-400'
@@ -612,7 +612,7 @@ export const OptionsScreener: React.FC<OptionsScreenerProps> = ({ className }) =
                       </td>
                       <td className="px-3 py-2.5 text-center">
                         <Badge
-                          variant="secondary"
+                          variant="outline"
                           className={cn(
                             'text-sm',
                             option.moneyness === 'ITM' && 'bg-playful-cream text-green-400',

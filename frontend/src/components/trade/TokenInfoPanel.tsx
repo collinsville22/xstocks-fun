@@ -16,6 +16,11 @@ interface CompanyInfo {
   longBusinessSummary?: string;
 }
 
+interface PricePoint {
+  time: number;
+  value: number;
+}
+
 interface TokenMetadata {
   mcap?: number;
   holderCount?: number;
@@ -103,10 +108,10 @@ export const TokenInfoPanel: React.FC<TokenInfoPanelProps> = ({ token, currentPr
               const price1hAgo = currentPrice / (1 + priceChange1h / 100);
 
               // Create data points
-              chartData.push({ timestamp: now - 24 * 60 * 60 * 1000, price: price24hAgo });
-              chartData.push({ timestamp: now - 6 * 60 * 60 * 1000, price: price6hAgo });
-              chartData.push({ timestamp: now - 1 * 60 * 60 * 1000, price: price1hAgo });
-              chartData.push({ timestamp: now, price: currentPrice });
+              chartData.push({ time: now - 24 * 60 * 60 * 1000, value: price24hAgo });
+              chartData.push({ time: now - 6 * 60 * 60 * 1000, value: price6hAgo });
+              chartData.push({ time: now - 1 * 60 * 60 * 1000, value: price1hAgo });
+              chartData.push({ time: now, value: currentPrice });
 
               console.log(`DexScreener chart data created: ${chartData.length} points for ${token.symbol}`);
               setHistoricalData(chartData);
@@ -160,7 +165,7 @@ export const TokenInfoPanel: React.FC<TokenInfoPanelProps> = ({ token, currentPr
   const displayData = historicalData;
 
   // Calculate min/max for chart scaling
-  const prices = displayData.length > 0 ? displayData.map(p => p.price) : [0];
+  const prices = displayData.length > 0 ? displayData.map(p => p.value) : [0];
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
   const priceRange = maxPrice - minPrice || 1;
@@ -216,7 +221,7 @@ export const TokenInfoPanel: React.FC<TokenInfoPanelProps> = ({ token, currentPr
                   points={displayData
                     .map((point, i) => {
                       const x = (i / (displayData.length - 1)) * 100;
-                      const y = 100 - ((point.price - minPrice) / priceRange) * 100;
+                      const y = 100 - ((point.value - minPrice) / priceRange) * 100;
                       return `${x},${y}`;
                     })
                     .join(' ')}

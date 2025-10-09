@@ -31,7 +31,8 @@ interface PortfolioPoint {
 interface OptimizationResult {
   efficientFrontier: PortfolioPoint[];
   optimalSharpe: PortfolioPoint;
-  optimalMinVol: PortfolioPoint;
+  optimalMinVol?: PortfolioPoint;
+  mptFrontier?: PortfolioPoint[]; // For Black-Litterman comparison
 }
 
 interface EfficientFrontierChartProps {
@@ -52,7 +53,7 @@ export const EfficientFrontierChart: React.FC<EfficientFrontierChartProps> = ({
   data,
   className
 }) => {
-  const { efficientFrontier, optimalSharpe, optimalMinVol } = data;
+  const { efficientFrontier, optimalSharpe, optimalMinVol, mptFrontier } = data;
 
   // Prepare data for scatter chart
   const scatterData = efficientFrontier.map((point) => ({
@@ -61,6 +62,14 @@ export const EfficientFrontierChart: React.FC<EfficientFrontierChartProps> = ({
     sharpe: point.sharpe,
     weights: point.weights,
   }));
+
+  // Prepare MPT frontier data if provided (for Black-Litterman comparison)
+  const mptScatterData = mptFrontier?.map((point) => ({
+    volatility: point.volatility,
+    return: point.return,
+    sharpe: point.sharpe,
+    weights: point.weights,
+  })) || [];
 
   // Get color based on Sharpe ratio
   const getColor = (sharpe: number) => {
@@ -139,7 +148,7 @@ export const EfficientFrontierChart: React.FC<EfficientFrontierChartProps> = ({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-[#3C3C3C]">Sharpe Ratio:</span>
-                <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
+                <Badge variant="outline" className="bg-blue-500/20 text-blue-400">
                   {optimalSharpe.sharpe.toFixed(2)}
                 </Badge>
               </div>
@@ -173,64 +182,66 @@ export const EfficientFrontierChart: React.FC<EfficientFrontierChartProps> = ({
         </Card>
 
         {/* Minimum Volatility Portfolio */}
-        <Card className="bg-playful-cream border-2 border-black rounded-2xl shadow-md">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-10 mb-3">
-              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-green-400" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-[#1a1a1a]">Minimum Volatility Portfolio</div>
-                <div className="text-sm text-[#3C3C3C]">Lowest risk option</div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#3C3C3C]">Expected Return:</span>
-                <span className="text-green-400 font-semibold">
-                  {(optimalMinVol.return).toFixed(2)}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#3C3C3C]">Volatility:</span>
-                <span className="text-orange-400 font-semibold">
-                  {(optimalMinVol.volatility).toFixed(2)}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#3C3C3C]">Sharpe Ratio:</span>
-                <Badge variant="secondary" className="bg-green-500/20 text-green-400">
-                  {optimalMinVol.sharpe.toFixed(2)}
-                </Badge>
-              </div>
-            </div>
-            {optimalMinVol.weights && (
-              <div className="mt-3 pt-3 border-t border-black/10/50">
-                <div className="text-sm text-[#3C3C3C] mb-2">Recommended Allocation:</div>
-                <div className="space-y-1">
-                  {Object.entries(optimalMinVol.weights)
-                    .sort(([, a]: any, [, b]: any) => b - a)
-                    .map(([symbol, weight]: [string, any]) => (
-                      <div key={symbol} className="flex items-center justify-between text-sm">
-                        <span className="text-[#1a1a1a]">{symbol}:</span>
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-green-500"
-                              style={{ width: `${weight * 100}%` }}
-                            />
-                          </div>
-                          <span className="text-[#1a1a1a] font-semibold w-12 text-right">
-                            {(weight * 100).toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+        {optimalMinVol && (
+          <Card className="bg-playful-cream border-2 border-black rounded-2xl shadow-md">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-10 mb-3">
+                <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-[#1a1a1a]">Minimum Volatility Portfolio</div>
+                  <div className="text-sm text-[#3C3C3C]">Lowest risk option</div>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#3C3C3C]">Expected Return:</span>
+                  <span className="text-green-400 font-semibold">
+                    {(optimalMinVol.return).toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#3C3C3C]">Volatility:</span>
+                  <span className="text-orange-400 font-semibold">
+                    {(optimalMinVol.volatility).toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#3C3C3C]">Sharpe Ratio:</span>
+                  <Badge variant="outline" className="bg-green-500/20 text-green-400">
+                    {optimalMinVol.sharpe.toFixed(2)}
+                  </Badge>
+                </div>
+              </div>
+              {optimalMinVol.weights && (
+                <div className="mt-3 pt-3 border-t border-black/10/50">
+                  <div className="text-sm text-[#3C3C3C] mb-2">Recommended Allocation:</div>
+                  <div className="space-y-1">
+                    {Object.entries(optimalMinVol.weights)
+                      .sort(([, a]: any, [, b]: any) => b - a)
+                      .map(([symbol, weight]: [string, any]) => (
+                        <div key={symbol} className="flex items-center justify-between text-sm">
+                          <span className="text-[#1a1a1a]">{symbol}:</span>
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-green-500"
+                                style={{ width: `${weight * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-[#1a1a1a] font-semibold w-12 text-right">
+                              {(weight * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Efficient Frontier Scatter Plot */}
@@ -291,9 +302,21 @@ export const EfficientFrontierChart: React.FC<EfficientFrontierChartProps> = ({
               <ZAxis type="number" dataKey="sharpe" range={[30, 150]} />
               <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
 
-              {/* All portfolios */}
+              {/* MPT Frontier (comparison - shown in gray) */}
+              {mptScatterData.length > 0 && (
+                <Scatter
+                  name="MPT Frontier"
+                  data={mptScatterData}
+                  fill="#9ca3af"
+                  shape="circle"
+                  fillOpacity={0.15}
+                  legendType="circle"
+                />
+              )}
+
+              {/* All portfolios (BL or MPT) */}
               <Scatter
-                name="Portfolios"
+                name={mptScatterData.length > 0 ? "BL Frontier" : "Portfolios"}
                 data={scatterData}
                 fill="#3b82f6"
                 shape="circle"
@@ -318,18 +341,20 @@ export const EfficientFrontierChart: React.FC<EfficientFrontierChartProps> = ({
               />
 
               {/* Minimum Volatility portfolio (highlighted) */}
-              <Scatter
-                name="Min Volatility"
-                data={[{
-                  volatility: optimalMinVol.volatility,
-                  return: optimalMinVol.return,
-                  sharpe: optimalMinVol.sharpe,
-                  weights: optimalMinVol.weights
-                }]}
-                fill="#10b981"
-                shape="triangle"
-                legendType="triangle"
-              />
+              {optimalMinVol && (
+                <Scatter
+                  name="Min Volatility"
+                  data={[{
+                    volatility: optimalMinVol.volatility,
+                    return: optimalMinVol.return,
+                    sharpe: optimalMinVol.sharpe,
+                    weights: optimalMinVol.weights
+                  }]}
+                  fill="#10b981"
+                  shape="triangle"
+                  legendType="triangle"
+                />
+              )}
 
               <Legend
                 wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }}

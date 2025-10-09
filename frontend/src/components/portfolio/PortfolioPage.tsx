@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { defaultWalletConfig } from '../../lib/walletConfig';
 import { createWalletService, TokenBalance } from '../../lib/walletService';
 import {
   TrendingUp,
@@ -881,15 +879,7 @@ const PortfolioPageContent: React.FC<PortfolioPageProps> = ({ tokens, intelData 
   );
 };
 
-// Main export component with wallet providers
+// Main export component - use shared wallet context from main.tsx
 export const PortfolioPage: React.FC<PortfolioPageProps> = ({ tokens, intelData }) => {
-  return (
-    <ConnectionProvider endpoint={defaultWalletConfig.endpoint}>
-      <WalletProvider wallets={defaultWalletConfig.wallets} autoConnect={defaultWalletConfig.autoConnect}>
-        <WalletModalProvider>
-          <PortfolioPageContent tokens={tokens} intelData={intelData} />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <PortfolioPageContent tokens={tokens} intelData={intelData} />;
 };

@@ -46,42 +46,8 @@ interface ScreeningCriteria {
   quantitative: QuantitativeCriteria;
 }
 
-interface FundamentalCriteria {
-  marketCapMin?: number;
-  marketCapMax?: number;
-  peRatioMin?: number;
-  peRatioMax?: number;
-  pbRatioMin?: number;
-  pbRatioMax?: number;
-  dividendYieldMin?: number;
-  dividendYieldMax?: number;
-  epsGrowthMin?: number;
-  epsGrowthMax?: number;
-  debtEquityMax?: number;
-  revenueGrowthMin?: number;
-}
 
-interface TechnicalCriteria {
-  priceChangeMin?: number;
-  priceChangeMax?: number;
-  volumeMin?: number;
-  rsiMin?: number;
-  rsiMax?: number;
-  macdSignal?: 'bullish' | 'bearish' | 'neutral';
-  priceVsMA?: 'above' | 'below' | 'neutral';
-  volatilityMax?: number;
-  pattern?: string;
-}
 
-interface QuantitativeCriteria {
-  analystRatingMin?: number;
-  earningsSurpriseMin?: number;
-  shortInterestMax?: number;
-  insiderOwnershipMin?: number;
-  institutionalOwnershipMin?: number;
-  esgScoreMin?: number;
-  quantRankMin?: number;
-}
 
 // Use the Stock interface from ResultsTable
 type ScreenedStock = Stock;

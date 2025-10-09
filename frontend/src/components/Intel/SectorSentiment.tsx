@@ -274,7 +274,7 @@ const SectorSentiment: React.FC<SectorSentimentProps> = ({
                 <div className="flex-1 min-w-0">
                   {/* Badges Row */}
                   <div className="flex items-center gap-2.5 mb-2">
-                    <Badge variant="secondary" className="bg-playful-orange/20 text-playful-orange text-sm font-semibold">
+                    <Badge variant="outline" className="bg-playful-orange/20 text-playful-orange text-sm font-semibold">
                       {news.source}
                     </Badge>
                   </div>

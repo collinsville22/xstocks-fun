@@ -98,7 +98,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
       }
 
       const apiResponse = await response.json();
-      setIvData(data);
+      setIvData(apiResponse);
     } catch (err) {
       console.error('Error fetching IV surface:', err);
       setError(err instanceof Error ? err.message : 'Failed to load IV surface');
@@ -191,7 +191,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
             <div className="flex items-center justify-between gap-10">
               <span className="text-sm text-[#3C3C3C]">Type:</span>
               <Badge
-                variant="secondary"
+                variant="outline"
                 className={cn(
                   'text-sm',
                   point.type === 'CALL' ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-red-400'
@@ -297,7 +297,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
               <span className="text-sm text-[#3C3C3C]">IV Skew</span>
             </div>
             <div className="text-sm font-bold text-[#1a1a1a]">{ivData.summary.skew.toFixed(1)}%</div>
-            <Badge variant="secondary" className={cn('text-sm mt-1', skewConfig.bgColor, skewConfig.color)}>
+            <Badge variant="outline" className={cn('text-sm mt-1', skewConfig.bgColor, skewConfig.color)}>
               {skewConfig.label}
             </Badge>
           </CardContent>
@@ -336,7 +336,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <Button
-                variant={viewMode === 'all' ? 'secondary' : 'outline'}
+                variant={viewMode === 'all'  ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('all')}
                 className="text-sm"
@@ -344,7 +344,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
                 All Options
               </Button>
               <Button
-                variant={viewMode === 'calls' ? 'secondary' : 'outline'}
+                variant={viewMode === 'calls'  ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('calls')}
                 className="text-sm text-green-400"
@@ -352,7 +352,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
                 Calls Only
               </Button>
               <Button
-                variant={viewMode === 'puts' ? 'secondary' : 'outline'}
+                variant={viewMode === 'puts'  ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('puts')}
                 className="text-sm text-red-400"
@@ -480,7 +480,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
         <CardContent className="space-y-3">
           <div className="flex items-start gap-10">
             <Badge
-              variant="secondary"
+              variant="outline"
               className={cn(
                 'text-sm mt-0.5',
                 ivData.summary.ivRank > 70 ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-[#3C3C3C]'
@@ -496,7 +496,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
 
           <div className="flex items-start gap-10">
             <Badge
-              variant="secondary"
+              variant="outline"
               className={cn(
                 'text-sm mt-0.5',
                 ivData.summary.ivRank < 30 ? 'bg-playful-cream text-blue-400' : 'bg-playful-cream text-[#3C3C3C]'
@@ -512,7 +512,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
 
           <div className="flex items-start gap-10">
             <Badge
-              variant="secondary"
+              variant="outline"
               className={cn(
                 'text-sm mt-0.5',
                 ivData.summary.skewInterpretation === 'PUT_SKEW' ? 'bg-playful-cream text-red-400' : 'bg-playful-cream text-[#3C3C3C]'
@@ -528,7 +528,7 @@ export const IVSurface: React.FC<IVSurfaceProps> = ({
 
           <div className="flex items-start gap-10">
             <Badge
-              variant="secondary"
+              variant="outline"
               className={cn(
                 'text-sm mt-0.5',
                 ivData.summary.skewInterpretation === 'CALL_SKEW' ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-[#3C3C3C]'

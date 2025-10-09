@@ -234,13 +234,13 @@ const MarketNewsFeed: React.FC<MarketNewsFeedProps> = React.memo(({
                         {/* Badges Row */}
                         <div className="flex items-center gap-2.5 mb-2">
                           <Badge
-                            variant="secondary"
+                            variant="outline"
                             className="bg-blue-400/20 text-blue-400 text-sm font-semibold"
                           >
                             {article.symbol}x
                           </Badge>
                           <Badge
-                            variant="secondary"
+                            variant="outline"
                             className={cn('text-sm', getTypeColor(article.type))}
                           >
                             {article.type.replace('_', ' ')}

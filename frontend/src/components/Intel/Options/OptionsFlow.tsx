@@ -324,7 +324,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
         {/* Sentiment Label */}
         <div className="absolute bottom-0 text-center">
           <Badge
-            variant="secondary"
+            variant="outline"
             className={cn(
               'text-sm font-bold px-3 py-1',
               sentiment === "BULLISH" && "bg-playful-cream text-green-400",
@@ -416,7 +416,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
             <div className="flex items-center gap-10">
               <div className="flex items-center gap-2.5">
                 <Button
-                  variant={timeFilter === 'hour' ? 'secondary' : 'outline'}
+                  variant={timeFilter === 'hour'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setTimeFilter('hour')}
                   className="text-sm"
@@ -425,7 +425,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
                   Last Hour
                 </Button>
                 <Button
-                  variant={timeFilter === 'day' ? 'secondary' : 'outline'}
+                  variant={timeFilter === 'day'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setTimeFilter('day')}
                   className="text-sm"
@@ -434,7 +434,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
                   Today
                 </Button>
                 <Button
-                  variant={timeFilter === 'week' ? 'secondary' : 'outline'}
+                  variant={timeFilter === 'week'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setTimeFilter('week')}
                   className="text-sm"
@@ -446,7 +446,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
 
               <Button
                 onClick={() => setAutoRefresh(!autoRefresh)}
-                variant={autoRefresh ? 'secondary' : 'outline'}
+                variant={autoRefresh  ? 'default' : 'outline'}
                 size="sm"
                 className="text-sm"
               >
@@ -600,7 +600,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name}: ${(Number(percent) * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -699,7 +699,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
                   <div>
                     <div className="flex items-center gap-2.5 mb-1">
                       <Badge
-                        variant="secondary"
+                        variant="outline"
                         className={cn(
                           'text-sm font-bold',
                           trade.type === 'CALL'
@@ -762,7 +762,7 @@ export const OptionsFlow: React.FC<OptionsFlowProps> = ({ className }) => {
                     <div className="flex items-center gap-2.5">
                       <span className="text-sm font-bold text-[#1a1a1a]">{trade.symbol}</span>
                       <Badge
-                        variant="secondary"
+                        variant="outline"
                         className={cn(
                           'text-sm',
                           trade.type === 'CALL'

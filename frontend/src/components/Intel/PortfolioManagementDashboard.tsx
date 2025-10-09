@@ -2,10 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { createWalletService, TokenBalance } from '../../lib/walletService';
-import { defaultWalletConfig } from '../../lib/walletConfig';
 import { raydiumService } from '../../lib/raydium.js';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -426,8 +423,8 @@ const PortfolioManagementContent: React.FC = () => {
       }
 
       const apiResponse = await response.json();
-      setBackendAnalytics(data);
-      console.log(' Backend portfolio analysis complete:', data);
+      setBackendAnalytics(apiResponse);
+      console.log(' Backend portfolio analysis complete:', apiResponse);
     } catch (error) {
       console.error('Error fetching portfolio analysis:', error);
         // TODO: Implement exponential backoff retry logic
@@ -472,8 +469,8 @@ const PortfolioManagementContent: React.FC = () => {
       }
 
       const apiResponse = await response.json();
-      setOptimizationResults(data);
-      console.log(' Optimization recommendations received:', data);
+      setOptimizationResults(apiResponse);
+      console.log(' Optimization recommendations received:', apiResponse);
     } catch (error) {
       console.error('Error fetching optimization:', error);
         // TODO: Implement exponential backoff retry logic
@@ -538,7 +535,23 @@ const PortfolioManagementContent: React.FC = () => {
 
       // Create wallet service instance
       const walletService = createWalletService(connection);
-      const wallet = { connected, publicKey, signTransaction: null, signAllTransactions: null };
+      const wallet = {
+        connected,
+        publicKey,
+        signTransaction: null as any,
+        signAllTransactions: null as any,
+        signMessage: null as any,
+        signIn: null as any,
+        wallet: null,
+        wallets: [],
+        autoConnect: false,
+        connecting: false,
+        disconnecting: false,
+        select: () => {},
+        connect: async () => {},
+        disconnect: async () => {},
+        sendTransaction: async () => '' as any
+      };
 
       // Get real wallet balances
       const walletBalances = await walletService.fetchWalletBalances(wallet);
@@ -827,7 +840,7 @@ const PortfolioManagementContent: React.FC = () => {
         {loading && (
           <div className="text-center py-2.5">
             <div className="w-14 h-14 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <p className="text-[#1a1a1a]">Loading real portfolio data...</p>
+            <p className="text-[#1a1a1a]">Loading real portfolio apiResponse...</p>
           </div>
         )}
 
@@ -1945,17 +1958,9 @@ const PortfolioManagementContent: React.FC = () => {
   );
 };
 
-// Main export component with wallet providers
+// Main export component - use shared wallet context from main.tsx
 const PortfolioManagementDashboard: React.FC = () => {
-  return (
-    <ConnectionProvider endpoint={defaultWalletConfig.endpoint}>
-      <WalletProvider wallets={defaultWalletConfig.wallets} autoConnect={defaultWalletConfig.autoConnect}>
-        <WalletModalProvider>
-          <PortfolioManagementContent />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <PortfolioManagementContent />;
 };
 
 export { PortfolioManagementDashboard };

@@ -274,7 +274,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
               <label className="text-sm text-[#3C3C3C] mb-2 block">Option Type</label>
               <div className="flex gap-2.5">
                 <Button
-                  variant={optionType === 'CALL' ? 'secondary' : 'outline'}
+                  variant={optionType === 'CALL'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setOptionType('CALL')}
                   className={cn('flex-1', optionType === "CALL" && "bg-playful-cream text-green-400")}
@@ -282,7 +282,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
                   CALL
                 </Button>
                 <Button
-                  variant={optionType === 'PUT' ? 'secondary' : 'outline'}
+                  variant={optionType === 'PUT'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setOptionType('PUT')}
                   className={cn('flex-1', optionType === 'PUT' && 'bg-playful-cream text-red-400')}
@@ -453,7 +453,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
                 <div className="p-3 bg-playful-cream border-2 border-black rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2.5">
-                      <Badge variant="secondary" className="bg-playful-cream text-green-400 text-sm">
+                      <Badge variant="outline" className="bg-playful-cream text-green-400 text-sm">
                         68% Probability
                       </Badge>
                       <span className="text-sm text-[#3C3C3C]">1 Standard Deviation</span>
@@ -477,7 +477,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
                 <div className="p-3 bg-playful-cream border-2 border-black rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2.5">
-                      <Badge variant="secondary" className="bg-playful-cream text-yellow-400 text-sm">
+                      <Badge variant="outline" className="bg-playful-cream text-yellow-400 text-sm">
                         95% Probability
                       </Badge>
                       <span className="text-sm text-[#3C3C3C]">2 Standard Deviations</span>
@@ -501,7 +501,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
                 <div className="p-3 bg-playful-cream border-2 border-black rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2.5">
-                      <Badge variant="secondary" className="bg-playful-cream text-red-400 text-sm">
+                      <Badge variant="outline" className="bg-playful-cream text-red-400 text-sm">
                         99.7% Probability
                       </Badge>
                       <span className="text-sm text-[#3C3C3C]">3 Standard Deviations</span>
@@ -604,7 +604,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
             <CardContent className="space-y-3">
               <div className="flex items-start gap-10">
                 <Badge
-                  variant="secondary"
+                  variant="outline"
                   className={cn(
                     'text-sm mt-0.5',
                     probabilityData.metrics.probITM > 60 ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-red-400'
@@ -624,7 +624,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
 
               <div className="flex items-start gap-10">
                 <Badge
-                  variant="secondary"
+                  variant="outline"
                   className={cn(
                     'text-sm mt-0.5',
                     probabilityData.metrics.winRate > 50 ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-yellow-400'
@@ -643,7 +643,7 @@ export const ProbabilityCalculator: React.FC<ProbabilityCalculatorProps> = ({
               </div>
 
               <div className="flex items-start gap-10">
-                <Badge variant="secondary" className="text-sm mt-0.5 bg-playful-cream text-blue-400">
+                <Badge variant="outline" className="text-sm mt-0.5 bg-playful-cream text-blue-400">
                   MOVE
                 </Badge>
                 <div className="text-sm text-[#1a1a1a]">

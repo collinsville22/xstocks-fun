@@ -105,8 +105,8 @@ const MarketHeatmap: React.FC<MarketHeatmapProps> = React.memo(({
       .paddingInner(1)
       .paddingOuter(2)
       .round(true)(
-        d3.hierarchy({ children: data })
-          .sum(d => d.marketCap)
+        d3.hierarchy({ children: data } as any)
+          .sum((d: any) => d.marketCap || 0)
           .sort((a, b) => (b.value || 0) - (a.value || 0))
       );
 
@@ -115,21 +115,23 @@ const MarketHeatmap: React.FC<MarketHeatmapProps> = React.memo(({
       d3.max(data, d => d.changePercent) || 0
     );
 
+    type TreemapNode = d3.HierarchyRectangularNode<StockData> & { x0: number; y0: number; x1: number; y1: number; data: StockData };
+
     const leaf = g.selectAll('g')
-      .data(root.leaves())
+      .data(root.leaves() as TreemapNode[])
       .join('g')
-      .attr('transform', d => `translate(${d.x0},${d.y0})`)
+      .attr('transform', (d: TreemapNode) => `translate(${d.x0},${d.y0})`)
       .style('cursor', 'pointer');
 
     leaf.append('rect')
-      .attr('width', d => d.x1 - d.x0)
-      .attr('height', d => d.y1 - d.y0)
+      .attr('width', (d: TreemapNode) => d.x1 - d.x0)
+      .attr('height', (d: TreemapNode) => d.y1 - d.y0)
       .attr('rx', 4)
-      .attr('fill', d => colorScale(d.data.changePercent))
+      .attr('fill', (d: TreemapNode) => colorScale(d.data.changePercent))
       .attr('stroke', '#1f2937')
       .attr('stroke-width', 1)
       .style('opacity', 0.9)
-      .on('mouseover', function(event, d) {
+      .on('mouseover', function(event, d: TreemapNode) {
         d3.select(this).style('opacity', 1).attr('stroke-width', 2);
         setTooltip({
           visible: true,
@@ -138,7 +140,7 @@ const MarketHeatmap: React.FC<MarketHeatmapProps> = React.memo(({
           data: d.data
         });
       })
-      .on('mousemove', function(event, d) {
+      .on('mousemove', function(event, d: TreemapNode) {
         setTooltip(prev => ({
           ...prev,
           x: event.pageX,
@@ -154,14 +156,14 @@ const MarketHeatmap: React.FC<MarketHeatmapProps> = React.memo(({
           data: null
         });
       })
-      .on('click', (event, d) => {
+      .on('click', (event, d: TreemapNode) => {
         onStockClick(d.data.symbol);
       });
 
     leaf.append('text')
       .attr('x', 4)
       .attr('y', 20)
-      .text(d => d.data.symbol)
+      .text((d: TreemapNode) => d.data.symbol)
       .attr('font-size', '14px')
       .attr('font-weight', 'bold')
       .attr('fill', '#ffffff')
@@ -171,7 +173,7 @@ const MarketHeatmap: React.FC<MarketHeatmapProps> = React.memo(({
     leaf.append('text')
       .attr('x', 4)
       .attr('y', 38)
-      .text(d => `${d.data.changePercent >= 0 ? '+' : ''}${d.data.changePercent.toFixed(2)}%`)
+      .text((d: TreemapNode) => `${d.data.changePercent >= 0 ? '+' : ''}${d.data.changePercent.toFixed(2)}%`)
       .attr('font-size', '12px')
       .attr('fill', '#ffffff')
       .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')
@@ -179,8 +181,8 @@ const MarketHeatmap: React.FC<MarketHeatmapProps> = React.memo(({
 
     leaf.append('text')
       .attr('x', 4)
-      .attr('y', d => (d.y1 - d.y0) - 10)
-      .text(d => formatCurrency(d.data.marketCap))
+      .attr('y', (d: TreemapNode) => (d.y1 - d.y0) - 10)
+      .text((d: TreemapNode) => formatCurrency(("marketCap" in d.data ? d.data.marketCap : 0)))
       .attr('font-size', '11px')
       .attr('fill', '#e5e7eb')
       .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')

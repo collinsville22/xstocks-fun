@@ -76,8 +76,8 @@ const SectorTechnicals: React.FC<SectorTechnicalsProps> = ({
         });
 
         const apiResponse = await response.json();
-        if (data.success) {
-          setTechnicalData(data.data);
+        if (apiResponse.success) {
+          setTechnicalData(apiResponse.data);
         }
       } catch (error) {
         console.error('Failed to fetch technical indicators:', error);

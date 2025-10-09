@@ -131,36 +131,36 @@ export const StockChart: React.FC<StockChartProps> = ({ symbol, period, classNam
 
       const apiResult = await response.json();
 
-      if (!result.candlesticks || !Array.isArray(result.candlesticks)) {
+      if (!apiResult.candlesticks || !Array.isArray(apiResult.candlesticks)) {
         throw new Error('Invalid chart data received');
       }
 
       // Transform data to Lightweight Charts format
       const transformedData: ChartData = {
-        symbol: result.symbol,
+        symbol: apiResult.symbol,
         timeframe: selectedTimeframe,
-        candlesticks: result.candlesticks.map((item: any) => ({
+        candlesticks: apiResult.candlesticks.map((item: any) => ({
           time: item.time,
           open: item.open,
           high: item.high,
           low: item.low,
           close: item.close,
         })),
-        volume: result.candlesticks.map((item: any) => ({
+        volume: apiResult.candlesticks.map((item: any) => ({
           time: item.time,
           value: item.volume || 0,
           color: item.close >= item.open ? '#26a69a' : '#ef5350',
         })),
         technicals: {
-          sma20: result.candlesticks.filter((item: any) => item.sma20).map((item: any) => ({
+          sma20: apiResult.candlesticks.filter((item: any) => item.sma20).map((item: any) => ({
             time: item.time,
             value: item.sma20,
           })),
-          sma50: result.candlesticks.filter((item: any) => item.sma50).map((item: any) => ({
+          sma50: apiResult.candlesticks.filter((item: any) => item.sma50).map((item: any) => ({
             time: item.time,
             value: item.sma50,
           })),
-          rsi: result.candlesticks.filter((item: any) => item.rsi).map((item: any) => ({
+          rsi: apiResult.candlesticks.filter((item: any) => item.rsi).map((item: any) => ({
             time: item.time,
             value: item.rsi,
           })),
@@ -201,21 +201,21 @@ export const StockChart: React.FC<StockChartProps> = ({ symbol, period, classNam
       const apiResult = await response.json();
 
       const transformedData: ChartData = {
-        symbol: result.symbol,
+        symbol:apiResult.symbol,
         timeframe: fullTimeframe,
-        candlesticks: result.candlesticks.map((item: any) => ({
+        candlesticks: apiResult.candlesticks.map((item: any) => ({
           time: item.time,
           open: item.open,
           high: item.high,
           low: item.low,
           close: item.close,
         })),
-        volume: result.candlesticks.map((item: any) => ({
+        volume: apiResult.candlesticks.map((item: any) => ({
           time: item.time,
           value: item.volume,
           color: item.close >= item.open ? '#26a69a' : '#ef5350',
         })),
-        technicals: result.technicals,
+        technicals: apiResult.technicals,
         timestamp: Date.now()
       };
 

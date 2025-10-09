@@ -7,7 +7,7 @@ import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { GlassCard } from './ui/GlassCard';
 import { NeonProgress } from './ui/NeonProgress';
-import { StockTooltip } from './StockTooltip';
+import { StockTooltip } from './ui/StockTooltip';
 import { cn } from '../../../lib/utils';
 import { getStockLogo } from '../../../utils/stockImages';
 import { TrendingUp, TrendingDown, Building2, BarChart3, RefreshCw, PieChart, Activity, DollarSign } from 'lucide-react';
@@ -388,7 +388,7 @@ const SectorPerformance: React.FC<SectorPerformanceProps> = React.memo(({
 
                     {/* Stock Count */}
                     <div className="flex justify-between items-center">
-                      <Badge variant="secondary" className="glass-card text-[#1a1a1a]">
+                      <Badge variant="outline" className="glass-card text-[#1a1a1a]">
                         {sector.stocks.length} stocks
                       </Badge>
                       <div className="text-sm text-[#3C3C3C]">

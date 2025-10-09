@@ -128,11 +128,11 @@ const IntelDashboard: React.FC<IntelDashboardProps> = ({ className }) => {
       const apiResult = await response.json();
 
       if (!apiResult.success) {
-        throw new Error(result.error || 'Failed to fetch dashboard data');
+        throw new Error(apiResult.error || 'Failed to fetch dashboard data');
       }
 
       // Extract data from unified response
-      const { data } = result;
+      const { data } = apiResult;
 
       // Update state with aggregated data
       setHeatmapData(Array.isArray(data.heatmap) ? data.heatmap : []);
@@ -163,8 +163,8 @@ const IntelDashboard: React.FC<IntelDashboardProps> = ({ className }) => {
       // Log performance improvement
       const duration = performance.now() - startTime;
       console.log(` Dashboard loaded in ${duration.toFixed(2)}ms (unified endpoint)`);
-      if (result.metadata?.processingTimeMs) {
-        console.log(` Backend processing: ${result.metadata.processingTimeMs}ms`);
+      if (apiResult.metadata?.processingTimeMs) {
+        console.log(` Backend processing: ${apiResult.metadata.processingTimeMs}ms`);
       }
     } catch (err) {
       console.error('Error fetching Intel data:', err);

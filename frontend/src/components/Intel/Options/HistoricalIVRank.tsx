@@ -103,7 +103,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
       }
 
       const apiResponse = await response.json();
-      setIvData(data);
+      setIvData(apiResponse);
     } catch (err) {
       console.error('Error fetching historical IV:', err);
       setError(err instanceof Error ? err.message : 'Failed to load historical IV');
@@ -243,7 +243,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
 
             <div className="flex items-center gap-2.5">
               <Button
-                variant={timeframe === '30' ? 'secondary' : 'outline'}
+                variant={timeframe === '30'  ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTimeframe('30')}
                 className="text-sm"
@@ -251,7 +251,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
                 30 Days
               </Button>
               <Button
-                variant={timeframe === '60' ? 'secondary' : 'outline'}
+                variant={timeframe === '60'  ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTimeframe('60')}
                 className="text-sm"
@@ -259,7 +259,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
                 60 Days
               </Button>
               <Button
-                variant={timeframe === '90' ? 'secondary' : 'outline'}
+                variant={timeframe === '90'  ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTimeframe('90')}
                 className="text-sm"
@@ -345,7 +345,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
             <div className="flex-1">
               <div className="flex items-center gap-2.5 mb-2">
                 <h4 className="font-semibold text-[#1a1a1a]">{config.label}</h4>
-                <Badge variant="secondary" className={cn('text-sm', config.bgColor, config.color)}>
+                <Badge variant="outline" className={cn('text-sm', config.bgColor, config.color)}>
                   {config.action}
                 </Badge>
               </div>
@@ -558,7 +558,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
         <CardContent className="space-y-3">
           <div className="flex items-start gap-10">
             <Badge
-              variant="secondary"
+              variant="outline"
               className={cn(
                 'text-sm mt-0.5',
                 ivData.statistics.ivRank > 70 ? 'bg-playful-cream text-green-400' : 'bg-playful-cream text-[#3C3C3C]'
@@ -577,7 +577,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
 
           <div className="flex items-start gap-10">
             <Badge
-              variant="secondary"
+              variant="outline"
               className={cn(
                 'text-sm mt-0.5',
                 ivData.statistics.ivRank < 30 ? 'bg-playful-cream text-blue-400' : 'bg-playful-cream text-[#3C3C3C]'
@@ -595,7 +595,7 @@ export const HistoricalIVRank: React.FC<HistoricalIVRankProps> = ({
           </div>
 
           <div className="flex items-start gap-10">
-            <Badge variant="secondary" className="text-sm mt-0.5 bg-playful-cream text-yellow-400">
+            <Badge variant="outline" className="text-sm mt-0.5 bg-playful-cream text-yellow-400">
               CAUTION
             </Badge>
             <div className="text-sm text-[#1a1a1a]">

@@ -51,7 +51,7 @@ interface MarketIndexChartProps {
     };
     sma20: number;
     sma50: number;
-    sma200: number;
+    sma200?: number;
     bollinger: {
       upper: number;
       middle: number;
@@ -167,14 +167,14 @@ export const MarketIndexChart: React.FC<MarketIndexChartProps> = ({
       const apiResponse = await response.json();
 
       // Check for successful response
-      if (!data.success || !data.chartData) {
+      if (!apiResponse.success || !apiResponse.chartData) {
         console.warn('No chart data available for', symbol);
         setIsLoading(false);
         return;
       }
 
       // Transform backend data to chart format
-      const transformedData: ChartData[] = data.chartData.map((item: any) => ({
+      const transformedData: ChartData[] = apiResponse.chartData.map((item: any) => ({
         time: item.time as Time,
         open: item.open,
         high: item.high,
@@ -226,12 +226,12 @@ export const MarketIndexChart: React.FC<MarketIndexChartProps> = ({
       );
       const apiResponse = await response.json();
 
-      if (!data.success || !data.chartData) {
+      if (!apiResponse.success || !apiResponse.chartData) {
         console.warn('No chart data available for full history');
         return;
       }
 
-      const transformedData: ChartData[] = data.chartData.map((item: any) => ({
+      const transformedData: ChartData[] = apiResponse.chartData.map((item: any) => ({
         time: item.time as Time,
         open: item.open,
         high: item.high,
@@ -697,7 +697,7 @@ export const MarketIndexChart: React.FC<MarketIndexChartProps> = ({
                 {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                 {change >= 0 ? '+' : ''}{change.toFixed(2)} ({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
               </div>
-              <Badge variant="secondary" className={cn('text-sm', rsiStatus.bg, rsiStatus.color)}>
+              <Badge variant="outline" className={cn('text-sm', rsiStatus.bg, rsiStatus.color)}>
                 RSI: {technical?.rsi?.toFixed(1) || 'N/A'} - {rsiStatus.label}
               </Badge>
             </div>

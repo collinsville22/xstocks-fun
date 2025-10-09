@@ -68,7 +68,7 @@ export const UnusualActivity: React.FC<UnusualActivityProps> = ({ className }) =
       }
 
       const apiResponse = await response.json();
-      setActivityData(data);
+      setActivityData(apiResponse);
       setLastUpdate(new Date());
     } catch (err) {
       console.error('Error fetching unusual activity:', err);
@@ -148,7 +148,7 @@ export const UnusualActivity: React.FC<UnusualActivityProps> = ({ className }) =
             <div className="flex items-center gap-10">
               <div className="flex items-center gap-2.5">
                 <Button
-                  variant={filterType === 'all' ? 'secondary' : 'outline'}
+                  variant={filterType === 'all'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setFilterType('all')}
                   className="text-sm"
@@ -156,7 +156,7 @@ export const UnusualActivity: React.FC<UnusualActivityProps> = ({ className }) =
                   All ({activityData?.count || 0})
                 </Button>
                 <Button
-                  variant={filterType === 'calls' ? 'secondary' : 'outline'}
+                  variant={filterType === 'calls'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setFilterType('calls')}
                   className="text-sm text-green-400"
@@ -164,7 +164,7 @@ export const UnusualActivity: React.FC<UnusualActivityProps> = ({ className }) =
                   Calls ({totalCalls})
                 </Button>
                 <Button
-                  variant={filterType === 'puts' ? 'secondary' : 'outline'}
+                  variant={filterType === 'puts'  ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setFilterType('puts')}
                   className="text-sm text-red-400"
@@ -267,7 +267,7 @@ export const UnusualActivity: React.FC<UnusualActivityProps> = ({ className }) =
                     <div>
                       <div className="flex items-center gap-2.5 mb-1">
                         <Badge
-                          variant="secondary"
+                          variant="outline"
                           className={cn(
                             'text-sm font-bold',
                             alert.type === 'CALL'
@@ -331,7 +331,7 @@ export const UnusualActivity: React.FC<UnusualActivityProps> = ({ className }) =
                         {alert.impliedVolatility.toFixed(1)}%
                       </div>
                       <Badge
-                        variant="secondary"
+                        variant="outline"
                         className={cn(
                           'text-sm mt-1',
                           alert.impliedVolatility > 70

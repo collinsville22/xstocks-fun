@@ -103,19 +103,19 @@ export const OptionsAnalysisDashboard: React.FC<OptionsAnalysisDashboardProps> =
         }
 
         const apiResponse = await response.json();
-        console.log(' Received data:', data);
+        console.log('📊 Received data:', apiResponse);
 
-        if (data.availableExpirations && data.availableExpirations.length > 0) {
-          console.log(' Setting expirations:', data.availableExpirations.length);
-          setAvailableExpirations(data.availableExpirations);
-          setSelectedExpiration(data.availableExpirations[0]);
+        if (apiResponse.availableExpirations && apiResponse.availableExpirations.length > 0) {
+          console.log('📅 Setting expirations:', apiResponse.availableExpirations.length);
+          setAvailableExpirations(apiResponse.availableExpirations);
+          setSelectedExpiration(apiResponse.availableExpirations[0]);
         } else {
           console.warn(' No expirations in response');
         }
 
-        if (data.currentPrice) {
-          console.log(' Current price:', data.currentPrice);
-          setCurrentPrice(data.currentPrice);
+        if (apiResponse.currentPrice) {
+          console.log('💰 Current price:', apiResponse.currentPrice);
+          setCurrentPrice(apiResponse.currentPrice);
         }
       } catch (error) {
         console.error(' Error fetching options expirations:', error);

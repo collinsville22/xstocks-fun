@@ -350,7 +350,7 @@ export const RiskMetricsDashboard: React.FC<RiskMetricsDashboardProps> = ({
       </Card>
 
       {/* Correlation Matrix Heatmap */}
-      {correlationMatrix && correlationMatrix.symbols.length > 0 && (
+      {correlationMatrix && correlationMatrix.symbols && correlationMatrix.symbols.length > 0 && (
         <Card className="glass-card border-black/10/50">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2.5">

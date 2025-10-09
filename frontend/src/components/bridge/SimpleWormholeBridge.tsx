@@ -6,7 +6,7 @@ interface SimpleWormholeBridgeProps {
 }
 
 export const WORMHOLE_CONFIG = {
-  network: 'Mainnet',
+  network: "Mainnet" as "Mainnet" | "Testnet" | "Devnet",
   chains: [
     'Ethereum',
     'Polygon',
@@ -26,7 +26,7 @@ export const WORMHOLE_CONFIG = {
 
 export const SimpleWormholeBridge: React.FC<SimpleWormholeBridgeProps> = ({ tokens }) => {
   const config = {
-    network: 'Mainnet',
+    network: "Mainnet" as "Mainnet" | "Testnet" | "Devnet",
     chains: [
       'Ethereum',
       'Polygon',
@@ -37,7 +37,7 @@ export const SimpleWormholeBridge: React.FC<SimpleWormholeBridgeProps> = ({ toke
       'Solana',
       'Sui',
       'Aptos',
-      'BNB Smart Chain',  // BSC
+      'Bsc',  // BSC
       'Linea',
       'Sei',  // Sei EVM
     ],
@@ -45,7 +45,7 @@ export const SimpleWormholeBridge: React.FC<SimpleWormholeBridgeProps> = ({ toke
     ui: {
       title: 'Bridge to xStocks',
     },
-  };
+  } as any;
 
   const theme = {
     mode: 'light',

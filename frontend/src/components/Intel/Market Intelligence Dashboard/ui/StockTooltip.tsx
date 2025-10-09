@@ -118,7 +118,7 @@ const StockTooltip: React.FC<StockTooltipProps> = ({
                     {data.symbol}
                   </h3>
                   {data.sector && (
-                    <Badge variant="secondary" className="text-sm bg-gray-800 text-gray-300">
+                    <Badge variant="outline" className="text-sm bg-gray-800 text-gray-300">
                       {data.sector}
                     </Badge>
                   )}

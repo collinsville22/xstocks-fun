@@ -12,6 +12,7 @@ interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
 const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
   ({ children, className, hover = true, glow = false, ...props }, ref) => {
     return (
+      // @ts-expect-error - Framer Motion type definition mismatch
       <motion.div
         ref={ref}
         initial={{ opacity: 0, y: 20 }}
@@ -33,7 +34,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
           className
         )}
         whileHover={hover ? { scale: 1.02 } : {}}
-        whileTap={hover ? { scale: 0.98 } : {}}
+
         {...props}
       >
         {/* Content - Trugly design uses clean, minimal styling */}

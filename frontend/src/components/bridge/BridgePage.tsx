@@ -4,7 +4,7 @@ import { Token } from '../../types';
 import { Globe, Coins, Clock, Zap, CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface BridgePageProps {
-  tokens: Token[];
+  tokens: any[];
 }
 
 export const BridgePage: React.FC<BridgePageProps> = ({ tokens }) => {

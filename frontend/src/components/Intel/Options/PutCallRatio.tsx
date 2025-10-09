@@ -97,7 +97,7 @@ export const PutCallRatio: React.FC<PutCallRatioProps> = ({ symbol, className })
       }
 
       const apiResponse = await response.json();
-      setPCRatioData(data);
+      setPCRatioData(apiResponse);
     } catch (err) {
       console.error('Error fetching P/C ratio:', err);
       setError(err instanceof Error ? err.message : 'Failed to load P/C ratio');
@@ -213,7 +213,7 @@ export const PutCallRatio: React.FC<PutCallRatioProps> = ({ symbol, className })
               <volumeConfig.icon className={cn('w-12 h-12', volumeConfig.color)} />
             </div>
 
-            <Badge variant="secondary" className={cn('mb-3', volumeConfig.bgColor, volumeConfig.color)}>
+            <Badge variant="outline" className={cn('mb-3', volumeConfig.bgColor, volumeConfig.color)}>
               {pcRatioData.overall.volumeInterpretation.sentiment}
             </Badge>
 
@@ -259,7 +259,7 @@ export const PutCallRatio: React.FC<PutCallRatioProps> = ({ symbol, className })
               <oiConfig.icon className={cn('w-12 h-12', oiConfig.color)} />
             </div>
 
-            <Badge variant="secondary" className={cn('mb-3', oiConfig.bgColor, oiConfig.color)}>
+            <Badge variant="outline" className={cn('mb-3', oiConfig.bgColor, oiConfig.color)}>
               {pcRatioData.overall.openInterestInterpretation.sentiment}
             </Badge>
 

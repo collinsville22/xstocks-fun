@@ -1,3 +1,4 @@
+# Git commit: 6070705 - Black-Litterman with Efficient Frontier v2
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -12,6 +13,7 @@ import json
 import time
 import logging
 import random
+import os
 from datetime import datetime, timedelta
 import uvicorn
 from scipy.stats import norm
@@ -143,7 +145,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="xStocks Intel Microservice", version="1.0.0")
+app = FastAPI(title="xStocks Intel Microservice", version="2.0.0-BL-FRONTIER")
 
 # Request rate limiting middleware (prevent API abuse from clients)
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -204,38 +206,50 @@ class ClientRateLimitMiddleware(BaseHTTPMiddleware):
 # Apply client rate limiting (100 requests per minute per IP)
 app.add_middleware(ClientRateLimitMiddleware, max_requests=100, window_seconds=60)
 
-# CORS middleware - Restrict to localhost frontend only
+# CORS middleware - Support production and local development
+allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],  # Expose all response headers
 )
 
 # Redis connection with authentication
 redis_client = None
 try:
     import os
+    redis_host = os.getenv('REDIS_HOST', 'localhost')
+    redis_port = int(os.getenv('REDIS_PORT', '6379'))
     redis_password = os.getenv('REDIS_PASSWORD', None)
+    redis_url = os.getenv('REDIS_URL', None)  # Upstash connection URL
 
-    if redis_password:
+    # Prefer REDIS_URL if provided (Upstash format)
+    if redis_url:
+        redis_client = redis.from_url(redis_url, decode_responses=True)
+        logger.info(f"Connecting to Redis via URL: {redis_url.split('@')[1] if '@' in redis_url else redis_url}")
+    elif redis_password:
         redis_client = redis.Redis(
-            host='localhost',
-            port=6379,
+            host=redis_host,
+            port=redis_port,
             db=0,
             password=redis_password,
-            decode_responses=True
+            decode_responses=True,
+            ssl=True,  # Upstash requires SSL
+            ssl_cert_reqs=None  # Don't verify SSL cert for Upstash
         )
+        logger.info(f"Connecting to Redis at {redis_host}:{redis_port} with authentication")
     else:
-        # TODO: Add REDIS_PASSWORD to environment variables for production
-        logger.warning("Redis running without authentication - not recommended for production")
-        redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+        logger.warning("No Redis configuration found - using in-memory caching")
+        raise Exception("No Redis config")
 
     redis_client.ping()
-    logger.info("Redis connected successfully")
+    logger.info("✅ Redis connected successfully")
 except Exception as e:
     logger.warning(f"Redis not available ({e}), using in-memory caching")
+    redis_client = None
 
 # Global flag to prevent concurrent unusual activity scans
 _scanning_in_progress = False
@@ -248,23 +262,32 @@ def load_xstock_mappings():
         mapping_file = os.path.join(os.path.dirname(__file__), 'xstock_mappings.json')
         with open(mapping_file, 'r') as f:
             data = json.load(f)
-            logger.info(f"✅ Loaded {len(data['xstock_to_ticker'])} xStock mappings")
+            logger.info(f"Loaded {len(data['xstock_to_ticker'])} xStock mappings")
             return data['xstock_to_ticker']
     except Exception as e:
-        logger.error(f"❌ Failed to load xStock mappings: {e}")
-        # Fallback to minimal mapping if file fails to load
-        return {
-            'AAPLx': 'AAPL',
-            'TSLAx': 'TSLA',
-            'GOOGLx': 'GOOGL',
-            'MSFTx': 'MSFT',
-            'AMZNx': 'AMZN',
-            'METAx': 'META',
-            'NVDAx': 'NVDA',
-        }
+        logger.error(f"Failed to load xStock mappings: {e}")
+        # Critical error - mappings are required
+        raise Exception(f"Cannot load xStock mappings: {e}")
 
 # Official xStock symbol mapping (63 stocks)
 STOCK_SYMBOLS = load_xstock_mappings()
+
+def normalize_symbol(symbol: str) -> str:
+    """
+    Normalize xStock symbol to real ticker symbol.
+    If symbol ends with 'x', look it up in STOCK_SYMBOLS.
+    Otherwise, return as-is.
+    """
+    if symbol.endswith('x'):
+        real_symbol = STOCK_SYMBOLS.get(symbol)
+        if real_symbol:
+            logger.debug(f"Mapped xStock {symbol} -> {real_symbol}")
+            return real_symbol
+        else:
+            logger.warning(f"xStock symbol {symbol} not found in mappings, stripping 'x'")
+            # Fallback: strip the 'x' if not in mappings
+            return symbol[:-1]
+    return symbol
 
 # Pydantic models
 class RealTimeData(BaseModel):
@@ -1329,7 +1352,23 @@ def get_market_movers_data(period='1d'):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "xStocks Intel Microservice", "timestamp": int(time.time() * 1000)}
+    return {
+        "status": "healthy",
+        "service": "xStocks Intel Microservice",
+        "version": "2.0.0-BL-FRONTIER",
+        "timestamp": int(time.time() * 1000)
+    }
+
+@app.get("/version")
+async def get_version():
+    """Get service version - use this to verify deployment"""
+    return {
+        "version": "2.0.0-BL-FRONTIER-FINAL-FIX",
+        "commit": "bb6a10d",
+        "deployedAt": "2025-10-09T10:27:00Z",
+        "features": ["black-litterman-efficient-frontier", "mpt-comparison"],
+        "timestamp": int(time.time() * 1000)
+    }
 
 @app.get("/warmup-status")
 async def get_warmup_status():
@@ -2200,6 +2239,10 @@ async def backtest_strategy(request: dict):
         strategy_params = request.get('strategyParams', {})
         benchmark_symbol = request.get('benchmarkSymbol', 'SPY')  # Now tracks real benchmark!
 
+        # COMPREHENSIVE DEBUG LOGGING
+        logger.info(f"🔍 BACKTEST REQUEST: symbols={symbols}, strategy={strategy}, start={start_date}, end={end_date}, capital={initial_capital}")
+        logger.info(f"📊 Request hash: {hash(str(sorted(symbols)) + start_date + end_date + strategy)}")
+
         # Extract strategy-specific parameters
         lookback_period = strategy_params.get('lookbackPeriod', 20)
         entry_threshold = strategy_params.get('entryThreshold', -2)
@@ -2222,12 +2265,16 @@ async def backtest_strategy(request: dict):
             try:
                 real_symbol = STOCK_SYMBOLS.get(xstock_symbol)
                 if not real_symbol:
+                    logger.error(f"❌ Symbol '{xstock_symbol}' NOT FOUND in xStock mappings! Available symbols: {len(STOCK_SYMBOLS)}")
                     return None
+
+                logger.info(f"📊 Fetching data for {xstock_symbol} → {real_symbol}")
 
                 def fetch():
                     ticker = yf.Ticker(real_symbol.replace('.', '-'))
                     hist = ticker.history(start=start_date, end=end_date, timeout=15)
                     if hist.empty:
+                        logger.warning(f"⚠️ yfinance returned EMPTY data for {real_symbol}")
                         return None
                     # Return full OHLCV dataframe, not just Close!
                     return hist[['Open', 'High', 'Low', 'Close', 'Volume']]
@@ -2235,7 +2282,7 @@ async def backtest_strategy(request: dict):
                 loop = asyncio.get_event_loop()
                 return await loop.run_in_executor(None, fetch)
             except Exception as e:
-                logger.warning(f"Could not fetch history for {xstock_symbol}: {e}")
+                logger.warning(f"❌ Could not fetch history for {xstock_symbol}: {e}")
                 return None
 
         # Also fetch benchmark data for comparison
@@ -2249,8 +2296,14 @@ async def backtest_strategy(request: dict):
         for sym, hist_df in zip(symbols, hist_data_list):
             if hist_df is not None and not hist_df.empty:
                 stock_data[sym] = hist_df
+                logger.info(f"✅ Fetched {len(hist_df)} days of data for {sym}")
+            else:
+                logger.warning(f"❌ No data for {sym}")
+
+        logger.info(f"📈 Successfully fetched data for {len(stock_data)}/{len(symbols)} symbols")
 
         if not stock_data:
+            logger.error(f"❌ CRITICAL: No valid historical data found for ANY symbols: {symbols}")
             raise HTTPException(status_code=400, detail="No valid historical data found")
 
         # Align all dataframes to same dates
@@ -2790,8 +2843,16 @@ async def backtest_strategy(request: dict):
             'weights': weights,
             'startDate': start_date,
             'endDate': end_date,
-            'timestamp': int(time.time() * 1000)
+            'timestamp': int(time.time() * 1000),
+            '_debug': {
+                'requestHash': hash(str(sorted(symbols)) + start_date + end_date + strategy),
+                'generatedAt': datetime.now().isoformat(),
+                'dataPoints': len(portfolio_value),
+                'symbolsProcessed': list(stock_data.keys())
+            }
         }
+
+        logger.info(f"✅ BACKTEST COMPLETE: {len(portfolio_value)} data points, symbols={list(stock_data.keys())}, hash={result['_debug']['requestHash']}")
 
         return result
 
@@ -2937,6 +2998,7 @@ async def optimize_portfolio(request: dict):
 async def black_litterman_model(request: dict):
     """
     Black-Litterman Portfolio Optimization Model
+    VERSION: 2.0 - WITH EFFICIENT FRONTIER
 
     Combines market equilibrium returns with investor views using Bayesian updating.
 
@@ -2976,27 +3038,31 @@ async def black_litterman_model(request: dict):
         if not symbols:
             raise HTTPException(status_code=400, detail="Symbols list is required")
 
-        logger.info(f"🧠 Black-Litterman Model: {len(symbols)} assets, {len(views)} views")
+        logger.info(f"BLACK-LITTERMAN V2.0 (WITH EFFICIENT FRONTIER)")
+        logger.info(f"Black-Litterman Model: {len(symbols)} assets, {len(views)} views")
 
         # Fetch historical data
         async def fetch_history(xstock_symbol: str):
             try:
-                real_symbol = STOCK_SYMBOLS.get(xstock_symbol) if xstock_symbol in STOCK_SYMBOLS else xstock_symbol
-                if not real_symbol:
-                    return (xstock_symbol, None)
+                # Normalize xStock symbol to real ticker
+                real_symbol = normalize_symbol(xstock_symbol)
+
+                logger.info(f"Fetching {xstock_symbol} -> {real_symbol} from {start_date} to {end_date}")
 
                 def fetch():
                     ticker = yf.Ticker(real_symbol.replace('.', '-'))
                     hist = ticker.history(start=start_date, end=end_date, timeout=15)
                     if hist.empty:
+                        logger.warning(f"Empty history for {xstock_symbol} ({real_symbol})")
                         return None
+                    logger.info(f"Successfully fetched {len(hist)} data points for {xstock_symbol}")
                     return hist['Close']
 
                 loop = asyncio.get_event_loop()
                 prices = await loop.run_in_executor(None, fetch)
                 return (xstock_symbol, prices)
             except Exception as e:
-                logger.warning(f"Could not fetch {xstock_symbol}: {e}")
+                logger.error(f"Failed to fetch {xstock_symbol}: {e}")
                 return (xstock_symbol, None)
 
         results = await asyncio.gather(*[fetch_history(sym) for sym in symbols])
@@ -3015,6 +3081,27 @@ async def black_litterman_model(request: dict):
 
         # Calculate covariance matrix (annualized)
         cov_matrix = returns.cov().values * 252
+
+        # DIAGNOSTIC: Check for data quality issues
+        logger.info(f"[DIAGNOSTIC] Number of trading days: {len(returns)}")
+        logger.info(f"[DIAGNOSTIC] Number of assets: {n_assets}")
+        logger.info(f"[DIAGNOSTIC] Symbols: {symbols_list}")
+        logger.info(f"[DIAGNOSTIC] Returns shape: {returns.shape}")
+        logger.info(f"[DIAGNOSTIC] Returns mean: {returns.mean().tolist()}")
+        logger.info(f"[DIAGNOSTIC] Returns std: {returns.std().tolist()}")
+        logger.info(f"[DIAGNOSTIC] Covariance matrix determinant: {np.linalg.det(cov_matrix)}")
+        logger.info(f"[DIAGNOSTIC] Covariance matrix condition number: {np.linalg.cond(cov_matrix)}")
+
+        # Check if matrix is singular or nearly singular
+        cond_number = np.linalg.cond(cov_matrix)
+        if cond_number > 1e10:
+            logger.warning(f"[WARNING] Covariance matrix is ill-conditioned (condition number: {cond_number:.2e})")
+            logger.warning(f"[WARNING] This may indicate highly correlated assets or insufficient data")
+            # Add small regularization to diagonal to make matrix invertible
+            epsilon = 1e-8 * np.eye(n_assets)
+            cov_matrix = cov_matrix + epsilon
+            logger.info(f"[FIX] Added regularization term to covariance matrix")
+            logger.info(f"[FIX] New condition number: {np.linalg.cond(cov_matrix)}")
 
         # ===== STEP 1: Calculate Market Equilibrium Returns (π) =====
         # π = δ × Σ × w_mkt
@@ -3129,12 +3216,39 @@ async def black_litterman_model(request: dict):
         # μ_BL = [(τΣ)^-1 + P'Ω^-1P]^-1 [(τΣ)^-1π + P'Ω^-1Q]
 
         tau_sigma = tau * cov_matrix
-        tau_sigma_inv = np.linalg.inv(tau_sigma)
-        omega_inv = np.linalg.inv(Omega)
+
+        # DIAGNOSTIC: Check tau_sigma before inversion
+        logger.info(f"[DIAGNOSTIC] tau_sigma determinant: {np.linalg.det(tau_sigma)}")
+        logger.info(f"[DIAGNOSTIC] tau_sigma condition number: {np.linalg.cond(tau_sigma)}")
+
+        try:
+            tau_sigma_inv = np.linalg.inv(tau_sigma)
+        except np.linalg.LinAlgError as e:
+            logger.error(f"[ERROR] Failed to invert tau_sigma matrix: {e}")
+            raise HTTPException(status_code=500, detail=f"Singular matrix error in tau_sigma: {e}")
+
+        # DIAGNOSTIC: Check Omega before inversion
+        logger.info(f"[DIAGNOSTIC] Omega determinant: {np.linalg.det(Omega)}")
+        logger.info(f"[DIAGNOSTIC] Omega condition number: {np.linalg.cond(Omega)}")
+
+        try:
+            omega_inv = np.linalg.inv(Omega)
+        except np.linalg.LinAlgError as e:
+            logger.error(f"[ERROR] Failed to invert Omega matrix: {e}")
+            raise HTTPException(status_code=500, detail=f"Singular matrix error in Omega: {e}")
 
         # Posterior precision matrix
         M = tau_sigma_inv + P.T @ omega_inv @ P
-        M_inv = np.linalg.inv(M)
+
+        # DIAGNOSTIC: Check M before inversion
+        logger.info(f"[DIAGNOSTIC] M determinant: {np.linalg.det(M)}")
+        logger.info(f"[DIAGNOSTIC] M condition number: {np.linalg.cond(M)}")
+
+        try:
+            M_inv = np.linalg.inv(M)
+        except np.linalg.LinAlgError as e:
+            logger.error(f"[ERROR] Failed to invert M matrix: {e}")
+            raise HTTPException(status_code=500, detail=f"Singular matrix error in M: {e}")
 
         # Posterior mean returns
         mu_bl = M_inv @ (tau_sigma_inv @ implied_returns + P.T @ omega_inv @ Q)
@@ -3145,9 +3259,12 @@ async def black_litterman_model(request: dict):
 
         logger.info(f"Black-Litterman updated returns: {(mu_bl * 100).tolist()} %")
 
-        # ===== STEP 4: Optimize Portfolio using BL Returns =====
-        num_portfolios = 1000
+        # ===== STEP 4: Generate Black-Litterman Efficient Frontier =====
+        # Generate efficient frontier using BL posterior returns and covariance
+        logger.info("GENERATING EFFICIENT FRONTIER - NEW CODE V2.0")
+        num_portfolios = 300  # Reduced from 1000 to prevent memory issues on free tier
         results_list = []
+        efficient_frontier = []
 
         for _ in range(num_portfolios):
             weights = np.random.random(n_assets)
@@ -3164,8 +3281,38 @@ async def black_litterman_model(request: dict):
                 'weights': weights
             })
 
+            # Add to efficient frontier (all portfolios for visualization)
+            efficient_frontier.append({
+                'return': float(portfolio_return * 100),
+                'volatility': float(portfolio_volatility * 100),
+                'sharpe': float(sharpe_ratio),
+                'weights': {sym: float(w) for sym, w in zip(symbols_list, weights)}
+            })
+
         # Find optimal Sharpe ratio portfolio
         best = max(results_list, key=lambda x: x['sharpe'])
+
+        # Find minimum volatility portfolio
+        min_vol = min(results_list, key=lambda x: x['volatility'])
+
+        # Also generate MPT efficient frontier for comparison (using historical cov, not BL)
+        mpt_frontier = []
+        for _ in range(num_portfolios):
+            weights = np.random.random(n_assets)
+            weights /= weights.sum()
+
+            # Use historical returns (mean) and covariance
+            historical_returns = returns.mean().values * 252
+            portfolio_return_mpt = np.dot(weights, historical_returns)
+            portfolio_volatility_mpt = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+            sharpe_ratio_mpt = (portfolio_return_mpt - 0.02) / portfolio_volatility_mpt if portfolio_volatility_mpt > 0 else 0
+
+            mpt_frontier.append({
+                'return': float(portfolio_return_mpt * 100),
+                'volatility': float(portfolio_volatility_mpt * 100),
+                'sharpe': float(sharpe_ratio_mpt),
+                'weights': {sym: float(w) for sym, w in zip(symbols_list, weights)}
+            })
 
         result = {
             'impliedReturns': {sym: float(ret * 100) for sym, ret in zip(symbols_list, implied_returns)},
@@ -3176,9 +3323,30 @@ async def black_litterman_model(request: dict):
             'expectedReturn': float(best['return'] * 100),
             'volatility': float(best['volatility'] * 100),
             'sharpeRatio': float(best['sharpe']),
+            'minVolatilityPortfolio': {
+                'weights': {sym: float(w) for sym, w in zip(symbols_list, min_vol['weights'])},
+                'expectedReturn': float(min_vol['return'] * 100),
+                'volatility': float(min_vol['volatility'] * 100),
+                'sharpe': float(min_vol['sharpe'])
+            },
+            'efficientFrontier': efficient_frontier,  # BL efficient frontier
+            'mptEfficientFrontier': mpt_frontier,     # MPT frontier for comparison
             'tradingDays': len(portfolio_df),
-            'timestamp': int(time.time() * 1000)
+            'timestamp': int(time.time() * 1000),
+            '_debug': {
+                'version': '2.0.0-BL-FRONTIER-DEPLOYED',
+                'deploymentTimestamp': '2025-10-09T05:41:00Z',
+                'efficientFrontierCount': len(efficient_frontier),
+                'mptFrontierCount': len(mpt_frontier),
+                'hasEfficientFrontier': 'efficientFrontier' in locals(),
+                'hasMinVolPortfolio': True,
+                'responseSize': len(str(efficient_frontier)) + len(str(mpt_frontier))
+            }
         }
+
+        logger.info(f"Generated BL efficient frontier with {len(efficient_frontier)} portfolios")
+        logger.info(f"Generated MPT frontier with {len(mpt_frontier)} portfolios")
+        logger.info(f"Returning result with efficientFrontier={len(efficient_frontier)}, mptEfficientFrontier={len(mpt_frontier)}")
 
         return result
 

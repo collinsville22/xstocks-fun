@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '../ui/card';
 import { createChart, IChartApi, ISeriesApi, LineData } from 'lightweight-charts';
 import { ENV } from '../../config/env';
 
@@ -56,11 +56,11 @@ export const SectorHistoricalChart: React.FC = () => {
       const response = await fetch(`${ENV.INTEL_API_URL}/api/sectors/historical?period=${timeRange}`);
       if (!response.ok) throw new Error('Failed to fetch historical data');
       const apiResult = await response.json();
-      setData(result);
+      setData(apiResult);
 
       // Auto-select top 5 performers on first load
-      if (selectedSectors.length === 0 && result.sectors.length > 0) {
-        const top5 = result.sectors.slice(0, 5).map((s: SectorHistoryData) => s.sector);
+      if (selectedSectors.length === 0 && apiResult.sectors.length > 0) {
+        const top5 = apiResult.sectors.slice(0, 5).map((s: SectorHistoryData) => s.sector);
         setSelectedSectors(top5);
       }
     } catch (err) {
@@ -125,11 +125,13 @@ export const SectorHistoricalChart: React.FC = () => {
 
     // Add line series for each sector
     sectorsToShow.forEach((sector, index) => {
-      const lineSeries = chart.addLineSeries({
+      const lineSeries = chart.addSeries({
+        type: 'Line',
         color: colors[index % colors.length],
-        lineWidth: 2,
-        title: sector.sector,
-      });
+        // downColor: colors[index % colors.length],
+        // borderVisible: false,
+        // wickVisible: false,
+      } as any) as any;
 
       const chartData: LineData[] = sector.history.map(point => ({
         time: point.time as any,

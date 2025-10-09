@@ -163,14 +163,16 @@ const transformStockData = (stock: any): RealStockData | null => {
 // Fetch technical indicators for individual stock from chart endpoint
 const fetchTechnicalIndicators = async (symbol: string): Promise<RealTechnicalData | null> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/chart/${symbol}?timeframe=3M`);
+    // Use daily (1D) data for technical indicators - provides enough data points for all indicators
+    // 3M quarterly data only has ~18 candles, not enough for MACD (26), Bollinger (20), SMA20/50
+    const response = await fetch(`${API_BASE_URL}/api/chart/${symbol}?timeframe=1D`);
     if (!response.ok) {
       console.error(`Failed to fetch technical indicators for ${symbol}`);
       return null;
     }
 
     const apiResponse = await response.json();
-    const technicals = data.technicals;
+    const technicals = apiResponse.technicals;
 
     if (!technicals) {
       console.warn(`No technical data available for ${symbol}`);
@@ -226,7 +228,15 @@ const fetchRealEarningsData = async (symbol: string): Promise<RealEarningsData |
 const fetchRealNewsData = async (symbol: string): Promise<RealNewsData | null> => {
   try {
     // News data not available without Alpha Vantage
-    return { symbol, news: [], sentiment: {}, success: false };
+    return {
+      symbol,
+      news: [],
+      sentiment: {
+        overall_sentiment_score: 0,
+        overall_sentiment_label: 'Neutral'
+      },
+      success: false
+    };
   } catch (error) {
     console.error('Error fetching real news data:', error);
         // TODO: Implement exponential backoff retry logic
@@ -578,7 +588,7 @@ const RealIndividualStockAnalysis: React.FC = () => {
                 {/* Interactive Stock Chart - PHASE 4.1 WEEK 1 */}
                 <StockChart key={`chart-${selectedSymbol}-${selectedPeriod}`} symbol={selectedSymbol} period={selectedPeriod} className="mb-3" />
 
-                <Card className="glass-card border-3 border-black rounded-2xl">
+                <Card key={`technical-${selectedSymbol}`} className="glass-card border-3 border-black rounded-2xl">
                   <CardHeader className="bg-playful-cream border-b-2 border-black">
                     <CardTitle className="text-sm text-[#1a1a1a] flex items-center gap-10">
                       <Activity className="w-8 h-8 text-playful-green" />
@@ -692,11 +702,11 @@ const RealIndividualStockAnalysis: React.FC = () => {
             )}
 
             {activeTab === 'fundamentals' && (
-              <FundamentalAnalysis key={`fundamentals-${selectedSymbol}-${selectedPeriod}`} symbol={selectedSymbol} period={selectedPeriod} />
+              <FundamentalAnalysis key={`fundamentals-${selectedSymbol}-${selectedPeriod}`} symbol={selectedSymbol} />
             )}
 
             {activeTab === 'earnings' && (
-              <EarningsAnalystData key={`earnings-${selectedSymbol}-${selectedPeriod}`} symbol={selectedSymbol} period={selectedPeriod} />
+              <EarningsAnalystData key={`earnings-${selectedSymbol}-${selectedPeriod}`} symbol={selectedSymbol} />
             )}
 
             {activeTab === 'news' && (

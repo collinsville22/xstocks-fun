@@ -73,7 +73,7 @@ export const PerformanceAttributionBar: React.FC<PerformanceAttributionBarProps>
             <div className="flex items-center justify-between gap-10 mb-2 pb-2 border-b-2 border-black/20">
               <span className="text-sm font-bold text-[#1a1a1a]">{data.symbol}</span>
               <Badge
-                variant="secondary"
+                variant="outline"
                 className={cn(
                   'text-sm border-2',
                   data.isPositive
