@@ -1,6 +1,5 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect, useCallback, useRef } from 'react';
 import { useMarketDashboard } from '../hooks/useMarketData';
-import { useMarketDataWebSocket } from '../hooks/useRobustWebSocket';
 
 type TimePeriod = '1d' | '1w' | '1mo' | '3mo' | 'ytd' | '1y';
 
@@ -42,18 +41,10 @@ interface MarketDataContextType {
   period: TimePeriod;
   setPeriod: (period: TimePeriod) => void;
 
-  // WebSocket connection status
-  wsConnected: boolean;
-  wsLastUpdate: string | null;
-  wsQueuedMessages: number;
-  wsLastHeartbeat: number | null;
-
   // Utility functions
   getStockBySymbol: (symbol: string) => any;
   getStocksBySector: (sector: string) => any[];
   getSectorData: (sector: string) => any;
-  subscribe: (dashboardTypes: string[]) => void;
-  unsubscribe: (dashboardTypes: string[]) => void;
 }
 
 const MarketDataContext = createContext<MarketDataContextType | undefined>(undefined);
@@ -81,41 +72,10 @@ export const MarketDataProvider: React.FC<{ children: ReactNode }> = ({ children
     });
   }, [dashboardData, isLoading, isFetching, isError, error, debouncedPeriod]);
 
-  // Real-time WebSocket updates (subscribes to 'market' dashboard by default)
-  const { marketData: wsData, connection: wsConnection, subscribe, unsubscribe } = useMarketDataWebSocket(['market']);
+  // Use HTTP data only (WebSocket market data not implemented on backend)
+  const mergedData = dashboardData?.data || null;
 
-  // Merge HTTP and WebSocket data with proper priority handling
-  const [mergedData, setMergedData] = useState<any>(null);
-  const previousPeriodRef = useRef<TimePeriod>(period);
-
-  useEffect(() => {
-    // Detect period change
-    const periodChanged = previousPeriodRef.current !== debouncedPeriod;
-    if (periodChanged) {
-      previousPeriodRef.current = debouncedPeriod;
-    }
-
-    // When period changes or HTTP data arrives, prioritize HTTP data
-    if (dashboardData?.data) {
-      setMergedData(dashboardData.data);
-    }
-  }, [dashboardData, debouncedPeriod]);
-
-  useEffect(() => {
-    // Only apply WebSocket updates if we have existing merged data
-    // WebSocket data is for real-time updates only (not period-specific)
-    if (mergedData && (wsData.heatmap || wsData.indices || wsData.sectors || wsData.topMovers || wsData.pulse)) {
-      setMergedData((prev: any) => ({
-        heatmap: wsData.heatmap || prev?.heatmap || [],
-        indices: wsData.indices || prev?.indices || [],
-        sectors: wsData.sectors || prev?.sectors || [],
-        topMovers: wsData.topMovers || prev?.topMovers || { gainers: [], losers: [] },
-        pulse: wsData.pulse || prev?.pulse || null
-      }));
-    }
-  }, [wsData, mergedData]);
-
-  // Compute derived data from merged source
+  // Compute derived data
   const allStocks = mergedData?.heatmap || [];
   const indices = mergedData?.indices || [];
   const sectors = mergedData?.sectors || [];
@@ -159,15 +119,9 @@ export const MarketDataProvider: React.FC<{ children: ReactNode }> = ({ children
     pulse,
     period,
     setPeriod,
-    wsConnected: wsConnection.isConnected,
-    wsLastUpdate: wsData.lastUpdate,
-    wsQueuedMessages: wsConnection.queuedMessages,
-    wsLastHeartbeat: wsConnection.lastHeartbeat,
     getStockBySymbol,
     getStocksBySector,
     getSectorData,
-    subscribe,
-    unsubscribe,
   };
 
   return (

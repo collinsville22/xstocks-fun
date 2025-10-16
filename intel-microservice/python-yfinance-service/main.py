@@ -838,23 +838,17 @@ def clean_data_for_json(data):
         return data
 
 def load_xstock_symbols():
-    """Load all 63 xStock symbols from the tokens.json file"""
+    """Load all xStock symbols from xstock_mappings.json"""
     try:
-        with open('../../frontend/public/tokens.json', 'r') as f:
-            tokens_data = json.load(f)
+        with open('xstock_mappings.json', 'r') as f:
+            mappings_data = json.load(f)
 
-        symbols = []
-        for token in tokens_data['xstocks']:
-            symbol = token['symbol'].replace('x', '')  # Remove 'x' suffix
-            # Handle special cases
-            if symbol == 'BRK.B':
-                symbol = 'BRK-B'
-            symbols.append(symbol)
+        symbols = list(mappings_data['xstock_to_ticker'].values())
 
-        logger.info(f"📊 Loaded {len(symbols)} xStock symbols from tokens.json")
+        logger.info(f"📊 Loaded {len(symbols)} xStock symbols from xstock_mappings.json")
         return symbols
     except Exception as e:
-        logger.error(f"❌ Failed to load tokens.json: {e}")
+        logger.error(f"❌ Failed to load xstock_mappings.json: {e}")
         return []
 
 def get_comprehensive_stocks_data(period='1d'):
