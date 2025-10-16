@@ -14,10 +14,13 @@ export class WebSocketService {
   constructor(server) {
     this.io = new Server(server, {
       cors: {
-        origin: SERVER.FRONTEND_URL, // Use constants for consistency with server.js
-        methods: ["GET", "POST"]
+        origin: SERVER.ALLOWED_ORIGINS, // Allow all configured origins
+        methods: ["GET", "POST"],
+        credentials: true
       },
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      pingTimeout: 60000,
+      pingInterval: 25000
     });
 
     this.clients = new Map(); // socketId -> client info
