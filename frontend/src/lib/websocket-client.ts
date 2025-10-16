@@ -3,6 +3,8 @@
  * Handles real-time communication with the backend WebSocket server
  */
 
+import { ENV } from '../config/env';
+
 export interface WebSocketClientConfig {
   url?: string;
   autoReconnect?: boolean;
@@ -75,7 +77,7 @@ export class WebSocketClient {
 
   constructor(config: WebSocketClientConfig = {}) {
     this.config = {
-      url: config.url || (typeof window !== 'undefined' ? `ws://${window.location.hostname}:3008` : 'ws://localhost:3008'),
+      url: config.url || ENV.WS_URL,
       autoReconnect: config.autoReconnect ?? true,
       reconnectInterval: config.reconnectInterval || 5000,
       maxReconnectAttempts: config.maxReconnectAttempts || 10
