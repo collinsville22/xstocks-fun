@@ -25,7 +25,10 @@ interface EnvironmentConfig {
  */
 export const ENV: EnvironmentConfig = {
   // Intel Service API (Python yfinance service)
-  INTEL_API_URL: import.meta.env.VITE_INTEL_API_URL || 'http://localhost:8002',
+  // In production, use relative URLs (proxied by Vercel)
+  // In development, use localhost
+  INTEL_API_URL: import.meta.env.VITE_INTEL_API_URL ||
+    (import.meta.env.PROD ? '' : 'http://localhost:8002'),
 
   // Backend API (Node.js Express server)
   BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3008',
