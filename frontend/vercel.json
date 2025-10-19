@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/api/intel/:path*",
-      "destination": "/api/intel-proxy?path=api/intel/:path*"
+      "source": "/api/:path*",
+      "destination": "/api/intel-proxy?path=api/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
