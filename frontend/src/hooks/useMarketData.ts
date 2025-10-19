@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 
 // OPTION 1: Unified Intel Service - All market data from single source
-const INTEL_API_URL = import.meta.env.VITE_INTEL_API_URL || 'http://localhost:8002';
+// In production, use relative URLs (proxied by Vercel)
+// In development, use localhost
+const INTEL_API_URL = import.meta.env.VITE_INTEL_API_URL ||
+  (import.meta.env.PROD ? '' : 'http://localhost:8002');
 
 interface DashboardData {
   success: boolean;
