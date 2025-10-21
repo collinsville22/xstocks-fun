@@ -48,6 +48,7 @@ const App: React.FC = () => {
   const [tradeTokens, setTradeTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Remember page during session (resets to 'trade' when browser closes)
   const [activePage, setActivePage] = useState<'intel' | 'trade' | 'portfolio' | 'bridge' | 'buy' | 'learn'>(() => {
     const savedPage = sessionStorage.getItem('xstocks_active_page');
@@ -171,32 +172,32 @@ const App: React.FC = () => {
 
   return (
     <div className="App min-h-screen">
-      {/* Trugly-Style Header - Exact Match */}
+      {/* Trugly-Style Header - Responsive */}
       <div className="sticky top-0 z-50 pt-3 px-3">
         {/* Main Header Card */}
         <div className="bg-white border-4 border-black rounded-[32px] shadow-2xl mb-3">
-          <div className="px-3 py-2.5">
+          <div className="px-4 py-3 md:px-3 md:py-2.5">
             <div className="flex items-center justify-between">
               {/* Logo */}
-              <div className="flex items-center gap-10">
-                <div className="w-14 h-14 rounded-full overflow-hidden border-3 border-black shadow-xl bg-white">
+              <div className="flex items-center gap-3 md:gap-10">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-3 border-black shadow-xl bg-white">
                   <img
                     src="/logo.png"
                     alt="xStocksFun"
                     className="w-full h-full object-contain scale-110"
                   />
                 </div>
-                <div>
-                  <h1 className="text-sm font-display font-extrabold text-[#1a1a1a] leading-tight">xStocksFun</h1>
-                  <p className="text-sm text-[#4a4a4a] font-body font-semibold">Trade tokenized stocks on Solana</p>
+                <div className="hidden sm:block">
+                  <h1 className="text-base md:text-sm font-display font-extrabold text-[#1a1a1a] leading-tight">xStocksFun</h1>
+                  <p className="text-sm md:text-sm text-[#4a4a4a] font-body font-semibold">Trade tokenized stocks on Solana</p>
                 </div>
               </div>
 
-              {/* Navigation Buttons */}
-              <div className="flex items-center gap-10">
+              {/* Desktop Navigation - Hidden on mobile */}
+              <div className="hidden lg:flex items-center gap-2">
                 <button
                   onClick={() => setActivePage('trade')}
-                  className={`px-3 py-2.5 rounded-full font-display font-bold text-sm transition-all duration-200 border-3 ${
+                  className={`px-4 py-3 rounded-full font-display font-bold text-base transition-all duration-200 border-3 ${
                     activePage === 'trade'
                       ? 'bg-black text-white border-black shadow-lg'
                       : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
@@ -206,7 +207,7 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActivePage('intel')}
-                  className={`px-3 py-2.5 rounded-full font-display font-bold text-sm transition-all duration-200 border-3 ${
+                  className={`px-4 py-3 rounded-full font-display font-bold text-base transition-all duration-200 border-3 ${
                     activePage === 'intel'
                       ? 'bg-black text-white border-black shadow-lg'
                       : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
@@ -216,7 +217,7 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActivePage('portfolio')}
-                  className={`px-3 py-2.5 rounded-full font-display font-bold text-sm transition-all duration-200 border-3 ${
+                  className={`px-4 py-3 rounded-full font-display font-bold text-base transition-all duration-200 border-3 ${
                     activePage === 'portfolio'
                       ? 'bg-black text-white border-black shadow-lg'
                       : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
@@ -226,7 +227,7 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActivePage('buy')}
-                  className={`px-3 py-2.5 rounded-full font-display font-bold text-sm transition-all duration-200 border-3 ${
+                  className={`px-4 py-3 rounded-full font-display font-bold text-base transition-all duration-200 border-3 ${
                     activePage === 'buy'
                       ? 'bg-black text-white border-black shadow-lg'
                       : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
@@ -236,7 +237,7 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActivePage('bridge')}
-                  className={`px-3 py-2.5 rounded-full font-display font-bold text-sm transition-all duration-200 border-3 ${
+                  className={`px-4 py-3 rounded-full font-display font-bold text-base transition-all duration-200 border-3 ${
                     activePage === 'bridge'
                       ? 'bg-black text-white border-black shadow-lg'
                       : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
@@ -246,7 +247,7 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActivePage('learn')}
-                  className={`px-3 py-2.5 rounded-full font-display font-bold text-sm transition-all duration-200 border-3 ${
+                  className={`px-4 py-3 rounded-full font-display font-bold text-base transition-all duration-200 border-3 ${
                     activePage === 'learn'
                       ? 'bg-black text-white border-black shadow-lg'
                       : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
@@ -254,10 +255,116 @@ const App: React.FC = () => {
                 >
                   Learn
                 </button>
-                <WalletMultiButton className="!px-3 !py-2.5 !bg-playful-green !text-white !rounded-full !font-display !font-bold !text-sm !border-3 !border-black !shadow-lg hover:!bg-playful-orange !transition-all !duration-200" />
+                <WalletMultiButton className="!px-4 !py-3 !bg-playful-green !text-white !rounded-full !font-display !font-bold !text-base !border-3 !border-black !shadow-lg hover:!bg-playful-orange !transition-all !duration-200" />
+              </div>
+
+              {/* Mobile Menu Button & Wallet */}
+              <div className="flex lg:hidden items-center gap-2">
+                <WalletMultiButton className="!px-3 !py-2 !bg-playful-green !text-white !rounded-full !font-display !font-bold !text-sm !border-3 !border-black !shadow-lg hover:!bg-playful-orange !transition-all !duration-200" />
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-3 rounded-full bg-white border-3 border-black hover:bg-gray-50 transition-all duration-200"
+                  aria-label="Toggle menu"
+                >
+                  {mobileMenuOpen ? (
+                    <svg className="w-6 h-6 text-[#1a1a1a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6 text-[#1a1a1a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  )}
+                </button>
               </div>
             </div>
           </div>
+
+          {/* Mobile Dropdown Menu */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden border-t-4 border-black bg-white/95 backdrop-blur-sm">
+              <div className="px-4 py-3 space-y-2">
+                <button
+                  onClick={() => {
+                    setActivePage('trade');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-5 py-4 rounded-2xl font-display font-bold text-base transition-all duration-200 border-3 text-left ${
+                    activePage === 'trade'
+                      ? 'bg-black text-white border-black shadow-lg'
+                      : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
+                  }`}
+                >
+                  Swap
+                </button>
+                <button
+                  onClick={() => {
+                    setActivePage('intel');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-5 py-4 rounded-2xl font-display font-bold text-base transition-all duration-200 border-3 text-left ${
+                    activePage === 'intel'
+                      ? 'bg-black text-white border-black shadow-lg'
+                      : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
+                  }`}
+                >
+                  Intel
+                </button>
+                <button
+                  onClick={() => {
+                    setActivePage('portfolio');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-5 py-4 rounded-2xl font-display font-bold text-base transition-all duration-200 border-3 text-left ${
+                    activePage === 'portfolio'
+                      ? 'bg-black text-white border-black shadow-lg'
+                      : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
+                  }`}
+                >
+                  Portfolio
+                </button>
+                <button
+                  onClick={() => {
+                    setActivePage('buy');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-5 py-4 rounded-2xl font-display font-bold text-base transition-all duration-200 border-3 text-left ${
+                    activePage === 'buy'
+                      ? 'bg-black text-white border-black shadow-lg'
+                      : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
+                  }`}
+                >
+                  Buy
+                </button>
+                <button
+                  onClick={() => {
+                    setActivePage('bridge');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-5 py-4 rounded-2xl font-display font-bold text-base transition-all duration-200 border-3 text-left ${
+                    activePage === 'bridge'
+                      ? 'bg-black text-white border-black shadow-lg'
+                      : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
+                  }`}
+                >
+                  Bridge
+                </button>
+                <button
+                  onClick={() => {
+                    setActivePage('learn');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-5 py-4 rounded-2xl font-display font-bold text-base transition-all duration-200 border-3 text-left ${
+                    activePage === 'learn'
+                      ? 'bg-black text-white border-black shadow-lg'
+                      : 'bg-white text-[#1a1a1a] border-black hover:bg-gray-50'
+                  }`}
+                >
+                  Learn
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

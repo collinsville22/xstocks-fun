@@ -26,6 +26,15 @@
         image-rendering: high-quality;
         image-rendering: -webkit-optimize-contrast;
       }
+
+      /* Mobile optimization for background */
+      @media (max-width: 768px) {
+        body::before {
+          background-size: cover;
+          background-position: center top;
+          background-attachment: fixed;
+        }
+      }
     </style>
 </head>
 <body>
