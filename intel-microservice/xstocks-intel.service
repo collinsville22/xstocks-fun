@@ -1,0 +1,25 @@
+[Unit]
+Description=xStocks Intel Microservice
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/xstocks-fun/intel-microservice/python-yfinance-service
+Environment="PATH=/home/ubuntu/.local/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/xstocks-intel.log
+StandardError=append:/var/log/xstocks-intel-error.log
+
+# Memory limits to prevent runaway processes
+MemoryMax=900M
+MemoryHigh=800M
+
+# Auto-restart on failure
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+[Install]
+WantedBy=multi-user.target

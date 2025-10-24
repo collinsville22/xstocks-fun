@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Frontend - Nginx serving static files
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - intel-service
+    restart: unless-stopped
+    networks:
+      - xstocks-network
+
+  # Backend - Node.js Express
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3008:3008"
+    environment:
+      - NODE_ENV=production
+      - PORT=3008
+    restart: unless-stopped
+    networks:
+      - xstocks-network
+
+  # Intel Microservice - Python FastAPI
+  intel-service:
+    build:
+      context: ./intel-microservice/python-yfinance-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - PORT=8002
+    restart: unless-stopped
+    networks:
+      - xstocks-network
+
+networks:
+  xstocks-network:
+    driver: bridge

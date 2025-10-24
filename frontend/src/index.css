@@ -1,0 +1,530 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Comic+Neue:wght@300;400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Global styles for dark theme trading terminal */
+  * {
+    @apply border-neutral-800;
+  }
+
+  html {
+    @apply antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
+  }
+
+  body {
+    @apply text-[#2C2C2C] font-body;
+    min-height: 100vh;
+    position: relative;
+    /* No gradient - let landscape image provide all background */
+    background: transparent;
+  }
+
+  /* Ensure all content is above the landscape image */
+  #root {
+    position: relative;
+    z-index: 1;
+    /* Only scale on desktop screens (1280px+) */
+  }
+
+  /* Scale for desktop view only */
+  @media (min-width: 1280px) {
+    #root {
+      transform: scale(0.8);
+      transform-origin: top center;
+      width: 125%; /* Compensate for scale to fill viewport */
+      margin-left: -12.5%; /* Center the scaled content */
+    }
+  }
+
+  /* Ensure smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Typography Hierarchy - Playful Theme - Mobile Optimized */
+  h1 {
+    @apply text-3xl sm:text-4xl md:text-5xl font-bold font-display text-[#2C2C2C] tracking-normal;
+  }
+
+  h2 {
+    @apply text-xl sm:text-2xl md:text-3xl font-bold font-display text-[#2C2C2C] tracking-normal;
+  }
+
+  h3 {
+    @apply text-lg sm:text-xl md:text-2xl font-semibold font-display text-[#2C2C2C];
+  }
+
+  h4 {
+    @apply text-base sm:text-lg md:text-xl font-semibold font-display text-[#3C3C3C];
+  }
+
+  h5 {
+    @apply text-sm sm:text-base md:text-lg font-medium font-display text-[#3C3C3C];
+  }
+
+  h6 {
+    @apply text-xs sm:text-sm md:text-base font-medium font-display text-[#4C4C4C];
+  }
+
+  p {
+    @apply text-base sm:text-lg text-[#2C2C2C] leading-relaxed font-body;
+  }
+
+  small {
+    @apply text-sm sm:text-base text-[#5C5C5C] font-body;
+  }
+
+  /* Custom scrollbar for playful theme */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-playful-beige;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-playful-green rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-playful-orange;
+  }
+
+  /* Focus ring improvements for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-playful-green ring-offset-2 ring-offset-white;
+  }
+
+  /* Tabular numbers for financial data */
+  .tabular-nums {
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* Playful card variants - Trugly style */
+  .glass-card {
+    @apply border-4 border-black rounded-3xl shadow-2xl;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-200 hover:scale-105 hover:shadow-2xl;
+  }
+
+  /* Professional button base - Mobile Optimized */
+  .btn {
+    @apply inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] px-4 py-3;
+  }
+
+  .btn-primary {
+    @apply btn bg-playful-green text-white border-2 border-black hover:bg-playful-orange focus-visible:ring-playful-green shadow-lg hover:shadow-2xl active:scale-95 rounded-2xl text-base sm:text-lg;
+  }
+
+  .btn-success {
+    @apply btn bg-playful-green text-white border-2 border-black hover:bg-[#6DB33F] focus-visible:ring-playful-green shadow-lg hover:shadow-2xl active:scale-95 rounded-2xl text-base sm:text-lg;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-500 text-white border-2 border-black hover:bg-red-600 focus-visible:ring-red-500 shadow-lg hover:shadow-2xl active:scale-95 rounded-2xl text-base sm:text-lg;
+  }
+
+  .btn-ghost {
+    @apply btn bg-white/80 text-playful-darkText border-2 border-black/20 hover:bg-white hover:border-black focus-visible:ring-playful-green rounded-2xl text-base sm:text-lg;
+  }
+
+  .btn-outline {
+    @apply btn bg-transparent border-2 border-black text-playful-darkText hover:bg-playful-cream focus-visible:ring-playful-green rounded-2xl text-base sm:text-lg;
+  }
+
+  /* Input styling - Mobile Optimized */
+  .input {
+    @apply w-full px-4 py-3 sm:px-4 sm:py-2 bg-white/80 border-2 border-black/20 rounded-2xl text-base sm:text-[#2C2C2C] placeholder-[#5C5C5C] focus:bg-white focus:border-playful-green focus:ring-2 focus:ring-playful-green/20 transition-all duration-200 min-h-[44px];
+  }
+
+  /* Metric card for financial data */
+  .metric-card {
+    @apply glass-card p-4 space-y-2;
+  }
+
+  .metric-label {
+    @apply text-sm text-[#5C5C5C] font-medium font-body;
+  }
+
+  .metric-value {
+    @apply text-2xl font-display font-bold tabular-nums text-[#2C2C2C];
+  }
+
+  .metric-change-positive {
+    @apply text-playful-green;
+  }
+
+  .metric-change-negative {
+    @apply text-red-500;
+  }
+
+  /* Chart container */
+  .chart-container {
+    @apply glass-card p-6;
+  }
+
+  /* Data table styling */
+  .data-table {
+    @apply w-full;
+  }
+
+  .data-table th {
+    @apply text-left text-xs font-semibold text-[#5C5C5C] uppercase tracking-wider py-3 px-4 border-b-2 border-black/10;
+  }
+
+  .data-table td {
+    @apply py-3 px-4 text-sm text-[#2C2C2C] border-b border-black/5;
+  }
+
+  .data-table tbody tr {
+    @apply hover:bg-white/50 transition-colors duration-150;
+  }
+
+  /* Navbar styling */
+  .nav-link {
+    @apply relative px-4 py-2 text-sm font-medium text-[#5C5C5C] hover:text-[#2C2C2C] transition-all duration-200;
+  }
+
+  .nav-link-active {
+    @apply text-playful-green;
+  }
+
+  .nav-link-active::after {
+    @apply content-[''] absolute bottom-0 left-0 right-0 h-0.5 bg-playful-green;
+  }
+
+  /* Badge styling */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply badge bg-playful-green/10 text-playful-green border-2 border-playful-green/20;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-500/10 text-red-600 border-2 border-red-500/20;
+  }
+
+  .badge-warning {
+    @apply badge bg-playful-orange/10 text-playful-orange border-2 border-playful-orange/20;
+  }
+
+  .badge-info {
+    @apply badge bg-playful-sky/10 text-playful-sky border-2 border-playful-sky/20;
+  }
+
+  .badge-neutral {
+    @apply badge bg-[#E5E5E5] text-[#5C5C5C] border-2 border-black/10;
+  }
+}
+
+@layer utilities {
+  /* Consistent Spacing Scale (4px base unit)
+     Use these for vertical rhythm and component spacing
+     Based on 8pt grid system: 4, 8, 16, 24, 32, 48, 64, 96 */
+  .space-y-xs {
+    @apply space-y-1;  /* 4px */
+  }
+
+  .space-y-sm {
+    @apply space-y-2;  /* 8px */
+  }
+
+  .space-y-md {
+    @apply space-y-4;  /* 16px */
+  }
+
+  .space-y-lg {
+    @apply space-y-6;  /* 24px */
+  }
+
+  .space-y-xl {
+    @apply space-y-8;  /* 32px */
+  }
+
+  .space-y-2xl {
+    @apply space-y-12; /* 48px */
+  }
+
+  .space-y-3xl {
+    @apply space-y-16; /* 64px */
+  }
+
+  /* Gap utilities for flex/grid */
+  .gap-xs {
+    @apply gap-1;  /* 4px */
+  }
+
+  .gap-sm {
+    @apply gap-2;  /* 8px */
+  }
+
+  .gap-md {
+    @apply gap-4;  /* 16px */
+  }
+
+  .gap-lg {
+    @apply gap-6;  /* 24px */
+  }
+
+  .gap-xl {
+    @apply gap-8;  /* 32px */
+  }
+
+  /* Section spacing utilities - Mobile First */
+  .section-spacing {
+    @apply py-8 sm:py-12 md:py-16; /* 32px mobile, 48px tablet, 64px desktop */
+  }
+
+  .section-spacing-sm {
+    @apply py-4 sm:py-8 md:py-12; /* 16px mobile, 32px tablet, 48px desktop */
+  }
+
+  .section-spacing-lg {
+    @apply py-12 sm:py-16 md:py-24; /* 48px mobile, 64px tablet, 96px desktop */
+  }
+
+  /* Mobile-specific padding utilities */
+  .mobile-container {
+    @apply px-4 sm:px-6 md:px-8 lg:px-12;
+  }
+
+  .mobile-safe-area {
+    @apply pb-safe-area-inset-bottom;
+  }
+
+  /* Animation utilities */
+  .animate-in {
+    @apply animate-fade-in;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.2s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Text gradient utilities */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-playful-green to-[#6DB33F] bg-clip-text text-transparent;
+  }
+
+  .text-gradient-success {
+    @apply bg-gradient-to-r from-playful-green to-[#6DB33F] bg-clip-text text-transparent;
+  }
+
+  .text-gradient-danger {
+    @apply bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent;
+  }
+
+  /* Glow effects */
+  .glow-primary {
+    box-shadow: 0 0 24px rgba(126, 200, 80, 0.4);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 24px rgba(126, 200, 80, 0.4);
+  }
+
+  .glow-danger {
+    box-shadow: 0 0 24px rgba(239, 68, 68, 0.4);
+  }
+
+  /* Glassmorphic backgrounds */
+  .glass-bg {
+    @apply bg-white/70 backdrop-blur-md;
+  }
+
+  .glass-border {
+    @apply border-2 border-black/10;
+  }
+
+  /* Custom scrollbar for dropdowns */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(115, 115, 115, 0.5) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(115, 115, 115, 0.5);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(115, 115, 115, 0.7);
+  }
+}
+
+/* ============================================
+   SOLANA WALLET ADAPTER MOBILE OPTIMIZATION
+   ============================================ */
+
+/* Mobile-optimized wallet modal */
+.wallet-adapter-modal-wrapper {
+  z-index: 9999 !important;
+}
+
+/* Make modal take full screen on mobile for better UX */
+@media (max-width: 768px) {
+  .wallet-adapter-modal {
+    max-width: 95vw !important;
+    max-height: 85vh !important;
+    border-radius: 24px !important;
+    margin: 0 auto !important;
+  }
+
+  .wallet-adapter-modal-container {
+    padding: 20px !important;
+  }
+
+  .wallet-adapter-modal-title {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Increase touch targets for wallet buttons */
+  .wallet-adapter-modal-list {
+    gap: 12px !important;
+  }
+
+  .wallet-adapter-modal-list .wallet-adapter-button {
+    min-height: 56px !important;
+    padding: 16px 20px !important;
+    font-size: 1rem !important;
+    border-radius: 16px !important;
+    border: 2px solid #E5E5E5 !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .wallet-adapter-modal-list .wallet-adapter-button:hover {
+    transform: scale(1.02) !important;
+    border-color: #7EC850 !important;
+    background-color: #f8fef5 !important;
+  }
+
+  .wallet-adapter-modal-list .wallet-adapter-button:active {
+    transform: scale(0.98) !important;
+  }
+
+  /* Make wallet icons larger on mobile */
+  .wallet-adapter-button-start-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  /* Better scrolling in wallet list */
+  .wallet-adapter-modal-list {
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Close button optimization */
+  .wallet-adapter-modal-button-close {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 12px !important;
+  }
+}
+
+/* Desktop wallet button in header */
+.wallet-adapter-button-trigger {
+  font-family: 'Fredoka', sans-serif !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+  border: 3px solid #000 !important;
+  transition: all 0.2s ease !important;
+  min-height: 44px !important;
+}
+
+/* Mobile wallet connect button enhancement */
+@media (max-width: 1024px) {
+  .wallet-adapter-button-trigger {
+    padding: 12px 16px !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Wallet dropdown menu mobile optimization */
+@media (max-width: 768px) {
+  .wallet-adapter-dropdown {
+    right: 0 !important;
+    left: auto !important;
+  }
+
+  .wallet-adapter-dropdown-list {
+    min-width: 240px !important;
+    border-radius: 16px !important;
+    padding: 8px !important;
+    border: 2px solid #000 !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .wallet-adapter-dropdown-list-item {
+    min-height: 48px !important;
+    padding: 12px 16px !important;
+    font-size: 0.95rem !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* Improve wallet connection status on mobile */
+.wallet-adapter-button[disabled] {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Mobile-specific: Add visual feedback for wallet connection */
+@media (max-width: 768px) {
+  .wallet-adapter-button-trigger[data-connected="true"] {
+    background: linear-gradient(135deg, #7EC850 0%, #6DB33F 100%) !important;
+    box-shadow: 0 4px 16px rgba(126, 200, 80, 0.3) !important;
+  }
+}
+
+/* Ensure proper z-index stacking on mobile */
+@media (max-width: 768px) {
+  .wallet-adapter-modal-overlay {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+}
+
+/* Better mobile wallet list accessibility */
+@media (max-width: 768px) {
+  .wallet-adapter-modal-list button {
+    -webkit-tap-highlight-color: rgba(126, 200, 80, 0.2);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}

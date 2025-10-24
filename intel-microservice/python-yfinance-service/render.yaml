@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: xstocksfun-intel
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true; find . -name "*.pyc" -delete 2>/dev/null || true; pip install -r requirements.txt
+    startCommand: python -B -m uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PYTHONDONTWRITEBYTECODE
+        value: 1
+      - key: PYTHONUNBUFFERED
+        value: 1
